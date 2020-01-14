@@ -14,7 +14,7 @@ namespace TCPAsyncSender
 {
     public partial class Form1 : Form
     {
-        TcpClient client = new TcpClient();
+        TcpClient client;
         int port;
 
         public Form1()
@@ -45,11 +45,16 @@ namespace TCPAsyncSender
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
+            if (client == null || !client.Connected)
+            {
+                client = new TcpClient();
+            }
             if (!client.Connected)
             {
                 Connect();
                 btnSend.Enabled = true;
                 btnConnect.Enabled = false;
+                btnDisconnect.Enabled = true;
             }
         }
 
@@ -75,9 +80,20 @@ namespace TCPAsyncSender
         {
             if (client != null)
             {
+                StartSending("ClientClosingNow-R");
                 client.Close();
             }
         }
 
+        private void btnDisconnect_Click(object sender, EventArgs e)
+        {
+            if (client != null)
+            {
+                StartSending("ClientClosingNow-R");
+                client.Close();
+                btnDisconnect.Enabled = false;
+                btnConnect.Enabled = true;
+            }
+        }
     }
 }

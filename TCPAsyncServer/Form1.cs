@@ -30,7 +30,11 @@ namespace TCPAsyncServer
             try
             {
                 port = int.Parse(tbxPort.Text);
-                listener = new TcpListener(IPAddress.Any, port);
+
+                if (listener == null)
+                {
+                    listener = new TcpListener(IPAddress.Any, port);
+                }
                 listener.Start();
             }
             catch (Exception error)
@@ -48,6 +52,11 @@ namespace TCPAsyncServer
             try
             {
                 client = await listener.AcceptTcpClientAsync();
+
+                IPEndPoint clienttmp = client.Client.LocalEndPoint as IPEndPoint;
+                tbxMessage.Text += "New connection from " + clienttmp.Address.ToString() + " was initialised at " + System.DateTime.Now;
+                tbxMessage.Text += Environment.NewLine;
+                tbxMessage.Text += Environment.NewLine;
             }
             catch (Exception error)
             {
@@ -62,9 +71,11 @@ namespace TCPAsyncServer
             byte[] buffer = new byte[1024];
 
             int n = 0;
+            string message;
             try
             {
                 n = await client.GetStream().ReadAsync(buffer, 0, 1024);
+                message = Encoding.Unicode.GetString(buffer, 0, n);
             }
             catch (Exception error)
             {
@@ -72,10 +83,28 @@ namespace TCPAsyncServer
                 return;
             }
 
-            tbxMessage.AppendText(Encoding.Unicode.GetString(buffer, 0, n));
+            if (message.Equals("ClientClosingNow-R"))
+            {
+                IPEndPoint clientTmp = client.Client.LocalEndPoint as IPEndPoint;
 
-            StartReading(client);
+                tbxMessage.Text += "Connection from " + clientTmp.Address.ToString() + " was terminated at " + System.DateTime.Now;
+                tbxMessage.Text += Environment.NewLine;
+                tbxMessage.Text += Environment.NewLine;
+                client.Close();
 
+                btnStart_Click(this, null);
+            }
+            else
+            {
+                IPEndPoint clientTmp = client.Client.LocalEndPoint as IPEndPoint;
+
+                tbxMessage.Text += "Message received at " + System.DateTime.Now + " from " + clientTmp.Address.ToString() + ". Message contains: " + "\n";
+                tbxMessage.AppendText(message);
+                tbxMessage.Text += Environment.NewLine;
+                tbxMessage.Text += Environment.NewLine;
+
+                StartReading(client);
+            }
         }
     }
 }

@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.gbxSender = new System.Windows.Forms.GroupBox();
+            this.btnConnect = new System.Windows.Forms.Button();
             this.tbxMessage = new System.Windows.Forms.TextBox();
             this.btnSend = new System.Windows.Forms.Button();
             this.lblMessage = new System.Windows.Forms.Label();
@@ -36,12 +37,13 @@
             this.lblPort = new System.Windows.Forms.Label();
             this.tbxIP = new System.Windows.Forms.TextBox();
             this.lblIP = new System.Windows.Forms.Label();
-            this.btnConnect = new System.Windows.Forms.Button();
+            this.btnDisconnect = new System.Windows.Forms.Button();
             this.gbxSender.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbxSender
             // 
+            this.gbxSender.Controls.Add(this.btnDisconnect);
             this.gbxSender.Controls.Add(this.btnConnect);
             this.gbxSender.Controls.Add(this.tbxMessage);
             this.gbxSender.Controls.Add(this.btnSend);
@@ -56,6 +58,16 @@
             this.gbxSender.TabIndex = 2;
             this.gbxSender.TabStop = false;
             this.gbxSender.Text = "Sender";
+            // 
+            // btnConnect
+            // 
+            this.btnConnect.Location = new System.Drawing.Point(0, 96);
+            this.btnConnect.Name = "btnConnect";
+            this.btnConnect.Size = new System.Drawing.Size(143, 23);
+            this.btnConnect.TabIndex = 8;
+            this.btnConnect.Text = "Connect";
+            this.btnConnect.UseVisualStyleBackColor = true;
+            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
             // 
             // tbxMessage
             // 
@@ -117,15 +129,16 @@
             this.lblIP.TabIndex = 0;
             this.lblIP.Text = "IP-adress";
             // 
-            // btnConnect
+            // btnDisconnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(0, 96);
-            this.btnConnect.Name = "btnConnect";
-            this.btnConnect.Size = new System.Drawing.Size(287, 23);
-            this.btnConnect.TabIndex = 8;
-            this.btnConnect.Text = "Connect";
-            this.btnConnect.UseVisualStyleBackColor = true;
-            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
+            this.btnDisconnect.Enabled = false;
+            this.btnDisconnect.Location = new System.Drawing.Point(149, 96);
+            this.btnDisconnect.Name = "btnDisconnect";
+            this.btnDisconnect.Size = new System.Drawing.Size(144, 23);
+            this.btnDisconnect.TabIndex = 9;
+            this.btnDisconnect.Text = "Disconnect";
+            this.btnDisconnect.UseVisualStyleBackColor = true;
+            this.btnDisconnect.Click += new System.EventHandler(this.btnDisconnect_Click);
             // 
             // Form1
             // 
@@ -152,6 +165,7 @@
         private System.Windows.Forms.TextBox tbxIP;
         private System.Windows.Forms.Label lblIP;
         private System.Windows.Forms.Button btnConnect;
+        private System.Windows.Forms.Button btnDisconnect;
     }
 }
 
