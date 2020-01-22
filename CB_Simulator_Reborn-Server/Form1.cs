@@ -97,6 +97,9 @@ namespace CB_Simulator_Reborn_Server
 
                 byte[] message = Encoding.UTF8.GetBytes(authRequestMessage);
                 await serverSender.GetStream().WriteAsync(message, 0, message.Length);
+                Console.WriteLine("Test4");
+
+                ReceiveAuth(client);
             }
             catch (Exception e)
             {
@@ -107,7 +110,7 @@ namespace CB_Simulator_Reborn_Server
         private async void ReceiveAuth(TcpClient client)
         {
             byte[] buffer = new byte[1024];
-
+            Console.WriteLine("Test5");
             int n = 0;
             string message = "";
 
