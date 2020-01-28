@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 
 namespace CB_Simulator_Reborn_Server
 {
-    class CB_Simulator_clientInfo
+    [SerializableAttribute]
+    public class CB_Simulator_clientInfo
     {
         private TcpClient client;
         private IPAddress ip;

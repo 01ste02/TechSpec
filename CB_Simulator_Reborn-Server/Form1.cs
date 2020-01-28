@@ -3,36 +3,38 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CB_Simulator_Reborn_Server
 {
-    public partial class Form1 : Form
+    public partial class CB_Simulator_Reborn_Server : Form
     {
         //Broadcast variables
-        const int serverPort = 11563;
-        IPAddress serverIP = IPAddress.Any;
-        UdpClient broadcaster = new UdpClient();
-        const int broadcastPort = 15000;
-        IPEndPoint broadcastEndpoint = new IPEndPoint(IPAddress.Broadcast, broadcastPort);
-        string broadcastMessage = "Server is on: " + serverPort.ToString();
+        private const int serverPort = 11563;
+        private IPAddress serverIP = IPAddress.Any;
+        private UdpClient broadcaster = new UdpClient();
+        private const int broadcastPort = 15000;
+        private IPEndPoint broadcastEndpoint = new IPEndPoint(IPAddress.Broadcast, broadcastPort);
+        private string broadcastMessage = "Server is on: " + serverPort.ToString();
 
         private Timer broadcastTimer;
 
         //TCP client variables
-        TcpListener serverListener;
-        TcpClient serverSender;
-        List<CB_Simulator_clientInfo> clientList = new List<CB_Simulator_clientInfo>();
-        List<TcpClient> incompleteClients = new List<TcpClient>();
+        private TcpListener serverListener;
+        private TcpClient serverSender;
+        private List<CB_Simulator_clientInfo> clientList = new List<CB_Simulator_clientInfo>();
+        private List<TcpClient> incompleteClients = new List<TcpClient>();
 
         string authRequestMessage = "R-A";
 
-        public Form1()
+        public CB_Simulator_Reborn_Server()
         {
             InitializeComponent();
             InitBroadcastTimer();
@@ -97,7 +99,6 @@ namespace CB_Simulator_Reborn_Server
 
                 byte[] message = Encoding.UTF8.GetBytes(authRequestMessage);
                 await serverSender.GetStream().WriteAsync(message, 0, message.Length);
-                Console.WriteLine("Test4");
 
                 ReceiveAuth(client);
             }
@@ -110,7 +111,6 @@ namespace CB_Simulator_Reborn_Server
         private async void ReceiveAuth(TcpClient client)
         {
             byte[] buffer = new byte[1024];
-            Console.WriteLine("Test5");
             int n = 0;
             string message = "";
 
@@ -124,15 +124,47 @@ namespace CB_Simulator_Reborn_Server
                 CB_Simulator_clientInfo tmpClient = new CB_Simulator_clientInfo(client, tmpEndpoint.Address, clientList.Count + 1, DateTime.Now, nickname);
                 clientList.Add(tmpClient);
                 Console.WriteLine("Added new client");
+
+                lbxConsole.Items.Add(DateTime.Now + ": New client connected from " + tmpClient.ClientIP + " with the username " + tmpClient.ClientNickname);
             }
             catch (Exception e)
             {
                 errorHandle(e);
             }
 
-            
-
             ReceiveAuth(client);
+        }
+
+        private async void SendUserList (TcpClient client)
+        {
+            try
+            {
+                serverSender = new TcpClient();
+                IPEndPoint tmpEndpoint = client.Client.LocalEndPoint as IPEndPoint;
+                await serverSender.ConnectAsync(tmpEndpoint.Address.ToString(), serverPort + 1);
+
+                byte[] message = Encoding.UTF8.GetBytes(authRequestMessage);
+                await serverSender.GetStream().WriteAsync(message, 0, message.Length);
+
+                ReceiveAuth(client);
+            }
+            catch (Exception e)
+            {
+                errorHandle(e);
+            }
+        }
+
+
+
+
+        private static byte[] SerializeUserList(List<CB_Simulator_clientInfo> userList)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                (new BinaryFormatter()).Serialize(memoryStream, userList);
+                byte[] tmp = memoryStream.ToArray();
+                return tmp;
+            }
         }
 
         public void errorHandle(Exception e)

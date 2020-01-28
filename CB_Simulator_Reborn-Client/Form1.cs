@@ -3,33 +3,35 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CB_Simulator_Reborn_Client
 {
-    public partial class Form1 : Form
+    public partial class CB_Simulator_Reborn_Client : Form
     {
-        const int broadcastPort = 15000;
-        readonly UdpClient broadcastReceiver = new UdpClient(broadcastPort);
-        IPAddress serverIP;
-        int serverPort;
+        private const int broadcastPort = 15000;
+        private readonly UdpClient broadcastReceiver = new UdpClient(broadcastPort);
+        private IPAddress serverIP;
+        private int serverPort;
 
-        TcpClient sendClient;
-        TcpListener recvListener;
-        TcpClient recvClient;
+        private TcpClient sendClient;
+        private TcpListener recvListener;
+        private TcpClient recvClient;
 
-        public Form1()
+        public CB_Simulator_Reborn_Client()
         {
             InitializeComponent();
             startBroadcastListening();
         }
 
-        public void startBroadcastListening()
+        private void startBroadcastListening()
         {
             broadcastReceiver.EnableBroadcast = true;
             broadcastReceiver.BeginReceive(receiveBroadcast, new Object());
@@ -41,10 +43,10 @@ namespace CB_Simulator_Reborn_Client
             byte[] broadcastBytes = broadcastReceiver.EndReceive(result, ref ip);
             String broadcastString = Encoding.UTF8.GetString(broadcastBytes);
             serverIP = ip.Address;
-            //serverIP = IPAddress.Parse("127.0.0.1");
             serverPort = int.Parse(broadcastString.Substring(14));
             Console.WriteLine("Broadcast Received: " + broadcastString + " " + serverIP.ToString());
 
+            broadcastReceiver.Dispose();
             ConnectToServer();
         }
 
@@ -71,7 +73,6 @@ namespace CB_Simulator_Reborn_Client
             try
             {
                 recvClient = await recvListener.AcceptTcpClientAsync();
-                Console.WriteLine("Test");
                 StartReceiving();
             }
             catch (Exception e)
@@ -82,7 +83,6 @@ namespace CB_Simulator_Reborn_Client
 
         private async void StartReceiving ()
         {
-            Console.WriteLine("Test2");
             byte[] buffer = new byte[1024];
 
             int n = 0;
@@ -102,19 +102,34 @@ namespace CB_Simulator_Reborn_Client
             {
                 SendAuth();
             }
+            else if (message.Contains("U-L-98759183"))
+            {
+
+            }
 
             StartReceiving();
         }
 
-        public async void SendAuth()
+        private async void SendAuth()
         {
-            Console.WriteLine("Test3");
-            string message = "Auth: Nickname: nickname";
+            string message = "Auth: Nickname: nickname"; //Fix
             byte[] messageBytes = Encoding.UTF8.GetBytes(message);
             await sendClient.GetStream().WriteAsync(messageBytes, 0, messageBytes.Length);
         }
 
-        public void errorHandle(Exception e)
+
+
+
+
+        private static List<CB_Simulator_clientInfo> Deserialize(byte[] userList)
+        {
+            BinaryFormatter bin = new BinaryFormatter();
+            var memoryStream = new MemoryStream(userList);
+            List<CB_Simulator_clientInfo> tmp = bin.Deserialize(memoryStream) as List<CB_Simulator_clientInfo>;
+            return tmp;
+        }
+
+        private void errorHandle(Exception e)
         {
             MessageBox.Show(this, e.Message, "An error has occured", MessageBoxButtons.OK);
         }

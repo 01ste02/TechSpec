@@ -16,7 +16,7 @@ namespace CB_Simulator_Reborn_Client
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new CB_Simulator_Reborn_Client());
         }
     }
 }
