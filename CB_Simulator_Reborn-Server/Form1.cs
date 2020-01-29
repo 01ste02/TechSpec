@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,11 +29,14 @@ namespace CB_Simulator_Reborn_Server
 
         //TCP client variables
         private TcpListener serverListener;
-        private TcpClient serverSender;
         private List<CB_Simulator_clientInfo> clientList = new List<CB_Simulator_clientInfo>();
+        private List<CB_Simulator_clientInfoLight> clientListLight = new List<CB_Simulator_clientInfoLight>();
         private List<TcpClient> incompleteClients = new List<TcpClient>();
 
         string authRequestMessage = "R-A";
+
+        private Timer userListDelayTimer;
+        private TcpClient tmpUserListClient;
 
         public CB_Simulator_Reborn_Server()
         {
@@ -82,6 +86,7 @@ namespace CB_Simulator_Reborn_Server
                 TcpClient tmpClient = await serverListener.AcceptTcpClientAsync();
                 incompleteClients.Add(tmpClient);
                 SendAuthRequest(tmpClient);
+                AcceptClients();
             }
             catch (Exception e)
             {
@@ -93,12 +98,8 @@ namespace CB_Simulator_Reborn_Server
         {
             try
             {
-                serverSender = new TcpClient();
-                IPEndPoint tmpEndpoint = client.Client.LocalEndPoint as IPEndPoint;
-                await serverSender.ConnectAsync(tmpEndpoint.Address.ToString(), serverPort + 1);
-
                 byte[] message = Encoding.UTF8.GetBytes(authRequestMessage);
-                await serverSender.GetStream().WriteAsync(message, 0, message.Length);
+                await client.GetStream().WriteAsync(message, 0, message.Length);
 
                 ReceiveAuth(client);
             }
@@ -122,31 +123,35 @@ namespace CB_Simulator_Reborn_Server
 
                 IPEndPoint tmpEndpoint = client.Client.LocalEndPoint as IPEndPoint;
                 CB_Simulator_clientInfo tmpClient = new CB_Simulator_clientInfo(client, tmpEndpoint.Address, clientList.Count + 1, DateTime.Now, nickname);
+                CB_Simulator_clientInfoLight tmpClientLight = new CB_Simulator_clientInfoLight(clientList.Count + 1, DateTime.Now, nickname);
                 clientList.Add(tmpClient);
+                clientListLight.Add(tmpClientLight);
                 Console.WriteLine("Added new client");
 
                 lbxConsole.Items.Add(DateTime.Now + ": New client connected from " + tmpClient.ClientIP + " with the username " + tmpClient.ClientNickname);
+                SendUserList(client);
             }
             catch (Exception e)
             {
                 errorHandle(e);
             }
 
-            ReceiveAuth(client);
         }
 
         private async void SendUserList (TcpClient client)
         {
             try
             {
-                serverSender = new TcpClient();
-                IPEndPoint tmpEndpoint = client.Client.LocalEndPoint as IPEndPoint;
-                await serverSender.ConnectAsync(tmpEndpoint.Address.ToString(), serverPort + 1);
+                byte[] messageHeader = Encoding.UTF8.GetBytes("U-L-98759183");
 
-                byte[] message = Encoding.UTF8.GetBytes(authRequestMessage);
-                await serverSender.GetStream().WriteAsync(message, 0, message.Length);
+                await client.GetStream().WriteAsync(messageHeader, 0, messageHeader.Length);
 
-                ReceiveAuth(client);
+                tmpUserListClient = client;
+
+                userListDelayTimer = new Timer();
+                userListDelayTimer.Tick += new EventHandler(SendUserListSerialized);
+                userListDelayTimer.Interval = 1000; // in miliseconds
+                userListDelayTimer.Start();
             }
             catch (Exception e)
             {
@@ -154,17 +159,55 @@ namespace CB_Simulator_Reborn_Server
             }
         }
 
-
-
-
-        private static byte[] SerializeUserList(List<CB_Simulator_clientInfo> userList)
+        private async void SendUserListSerialized (object sender, EventArgs e)
         {
-            using (var memoryStream = new MemoryStream())
+            try
+            {
+                userListDelayTimer.Stop();
+                TcpClient client = tmpUserListClient;
+                tmpUserListClient = null;
+
+                byte[] message = SerializeUserList(clientListLight);
+                await client.GetStream().WriteAsync(message, 0, message.Length);
+            }
+            catch (Exception e2)
+            {
+                errorHandle(e2);
+            }
+        }
+
+
+
+
+        private static byte[] SerializeUserList(List<CB_Simulator_clientInfoLight> userList)
+        {
+            /*using (var memoryStream = new MemoryStream())
             {
                 (new BinaryFormatter()).Serialize(memoryStream, userList);
                 byte[] tmp = memoryStream.ToArray();
+                Console.WriteLine("Lenght: " + tmp.Length);
+
+                BinaryFormatter bin = new BinaryFormatter();
+                var memoryStream2 = new MemoryStream(tmp);
+                object tmp2 = bin.Deserialize(memoryStream);
+                List<CB_Simulator_clientInfoLight> list = tmp2 as List<CB_Simulator_clientInfoLight>;
+                //as List<CB_Simulator_Reborn_Server.CB_Simulator_clientInfoLight>
+
                 return tmp;
-            }
+            }*/
+
+            MemoryStream stream = SerializeToStream(userList);
+            byte[] tmp = stream.ToArray();
+
+            return tmp;
+        }
+
+        public static MemoryStream SerializeToStream(object o)
+        {
+            MemoryStream stream = new MemoryStream();
+            IFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(stream, o);
+            return stream;
         }
 
         public void errorHandle(Exception e)

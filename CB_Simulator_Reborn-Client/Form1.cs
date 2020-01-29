@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,9 +22,10 @@ namespace CB_Simulator_Reborn_Client
         private IPAddress serverIP;
         private int serverPort;
 
-        private TcpClient sendClient;
-        private TcpListener recvListener;
-        private TcpClient recvClient;
+        private bool nextMessageUserList = false;
+        private List<CB_Simulator_clientInfoLight> userList;
+
+        private TcpClient Client;
 
         public CB_Simulator_Reborn_Client()
         {
@@ -54,25 +56,8 @@ namespace CB_Simulator_Reborn_Client
         {
             try
             {
-                sendClient = new TcpClient();
-                await sendClient.ConnectAsync(serverIP, serverPort);
-
-                IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Any, (serverPort + 1));
-                recvListener = new TcpListener(serverEndPoint);
-                recvListener.Start();
-                AcceptServerConnection();
-            }
-            catch (Exception e)
-            {
-                errorHandle(e);
-            }
-        }
-
-        private async void AcceptServerConnection()
-        {
-            try
-            {
-                recvClient = await recvListener.AcceptTcpClientAsync();
+                Client = new TcpClient();
+                await Client.ConnectAsync(serverIP, serverPort);
                 StartReceiving();
             }
             catch (Exception e)
@@ -81,30 +66,41 @@ namespace CB_Simulator_Reborn_Client
             }
         }
 
+
         private async void StartReceiving ()
         {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[4096];
 
             int n = 0;
             string message = "";
 
             try
             {
-                n = await recvClient.GetStream().ReadAsync(buffer, 0, 1024);
-                message = Encoding.UTF8.GetString(buffer, 0, n);
+                n = await Client.GetStream().ReadAsync(buffer, 0, 4096);
+
+                if (!nextMessageUserList)
+                {
+                    message = Encoding.UTF8.GetString(buffer, 0, n);
+                }
+                else
+                {
+                    nextMessageUserList = false;
+                    userList = Deserialize(buffer);
+                    updateUserList();
+                }
+
+                if (message.Equals("R-A"))
+                {
+                    SendAuth();
+                }
+                else if (message.Equals("U-L-98759183"))
+                {
+                    nextMessageUserList = true;
+                }
             }
             catch (Exception e)
             {
                 errorHandle(e);
-            }
-
-            if (message.Equals("R-A"))
-            {
-                SendAuth();
-            }
-            else if (message.Contains("U-L-98759183"))
-            {
-
             }
 
             StartReceiving();
@@ -114,24 +110,44 @@ namespace CB_Simulator_Reborn_Client
         {
             string message = "Auth: Nickname: nickname"; //Fix
             byte[] messageBytes = Encoding.UTF8.GetBytes(message);
-            await sendClient.GetStream().WriteAsync(messageBytes, 0, messageBytes.Length);
+            await Client.GetStream().WriteAsync(messageBytes, 0, messageBytes.Length);
         }
 
 
 
 
 
-        private static List<CB_Simulator_clientInfo> Deserialize(byte[] userList)
+        private static List<CB_Simulator_clientInfoLight> Deserialize(byte[] userList)
         {
-            BinaryFormatter bin = new BinaryFormatter();
+            /*BinaryFormatter bin = new BinaryFormatter();
             var memoryStream = new MemoryStream(userList);
-            List<CB_Simulator_clientInfo> tmp = bin.Deserialize(memoryStream) as List<CB_Simulator_clientInfo>;
-            return tmp;
+            object tmp = bin.Deserialize(memoryStream);
+            List<CB_Simulator_Reborn_Server.CB_Simulator_clientInfoLight> list = tmp as List<CB_Simulator_Reborn_Server.CB_Simulator_clientInfoLight>;
+            //as List<CB_Simulator_Reborn_Server.CB_Simulator_clientInfoLight>*/
+            MemoryStream stream = new MemoryStream(userList);
+            List<CB_Simulator_clientInfoLight> list = (List<CB_Simulator_clientInfoLight>)DeserializeFromStream(stream);
+            return list;
+        }
+
+        public static object DeserializeFromStream(MemoryStream stream)
+        {
+            IFormatter formatter = new BinaryFormatter();
+            stream.Seek(0, SeekOrigin.Begin);
+            object o = formatter.Deserialize(stream);
+            return o;
+        }
+
+        private void updateUserList()
+        {
+            for (int i = 0; i < userList.Count; i++)
+            {
+                lbxUsers.Items.Add(userList[i].ClientNickname);
+            }
         }
 
         private void errorHandle(Exception e)
         {
-            MessageBox.Show(this, e.Message, "An error has occured", MessageBoxButtons.OK);
+            //MessageBox.Show(this, e.Message, "An error has occured", MessageBoxButtons.OK);
         }
     }
 }
