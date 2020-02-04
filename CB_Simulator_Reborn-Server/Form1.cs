@@ -12,6 +12,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 
 namespace CB_Simulator_Reborn_Server
 {
@@ -30,7 +31,7 @@ namespace CB_Simulator_Reborn_Server
         //TCP client variables
         private TcpListener serverListener;
         private List<CB_Simulator_clientInfo> clientList = new List<CB_Simulator_clientInfo>();
-        private List<CB_Simulator_clientInfoLight> clientListLight = new List<CB_Simulator_clientInfoLight>();
+        public List<CB_Simulator_clientInfoLight> clientListLight = new List<CB_Simulator_clientInfoLight>();
         private List<TcpClient> incompleteClients = new List<TcpClient>();
 
         string authRequestMessage = "R-A";
@@ -202,11 +203,17 @@ namespace CB_Simulator_Reborn_Server
             return tmp;
         }
 
-        public static MemoryStream SerializeToStream(object o)
+        public static MemoryStream SerializeToStream(List<CB_Simulator_clientInfoLight> o)
         {
             MemoryStream stream = new MemoryStream();
-            IFormatter formatter = new BinaryFormatter();
-            formatter.Serialize(stream, o);
+            //IFormatter formatter = new XmlSerializer();
+            transmitClientListLight transmitList = new transmitClientListLight();
+            transmitList.x = 12345;
+            transmitList.transmitList = o;
+
+            BinaryFormatter serializer = new BinaryFormatter();
+            serializer.Serialize(stream, transmitList);
+            //formatter.Serialize(stream, o);
             return stream;
         }
 

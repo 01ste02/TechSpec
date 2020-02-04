@@ -1,21 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CB_Simulator_Reborn_Client
-{
-    [SerializableAttribute]
+[System.Serializable]
     public class CB_Simulator_clientInfoLight
     {
+        public Int32 x;
         private int id;
         private DateTime connectTime;
         private string nickname;
 
-        public CB_Simulator_clientInfoLight(int id, DateTime connectTime, string nickname)
+        public CB_Simulator_clientInfoLight(int id = 99999, DateTime connectTime = default(DateTime), string nickname = "NoNickname")
         {
             ClientId = id;
             ClientConnectTime = connectTime;
@@ -79,4 +72,5 @@ namespace CB_Simulator_Reborn_Client
             }
         }
     }
-}
+
+

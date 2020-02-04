@@ -7,11 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 
 namespace CB_Simulator_Reborn_Client
 {
@@ -131,9 +133,13 @@ namespace CB_Simulator_Reborn_Client
 
         public static object DeserializeFromStream(MemoryStream stream)
         {
-            IFormatter formatter = new BinaryFormatter();
+            //IFormatter formatter = new BinaryFormatter();
+            BinaryFormatter deserializer = new BinaryFormatter();
+            receiveTransmitClientList obj = null;
+            deserializer.Binder = new Version1ToVersion2DeserializationBinder();
+
             stream.Seek(0, SeekOrigin.Begin);
-            object o = formatter.Deserialize(stream);
+            object o = (CB_Simulator_clientInfoLight)deserializer.Deserialize(stream);
             return o;
         }
 
@@ -148,6 +154,12 @@ namespace CB_Simulator_Reborn_Client
         private void errorHandle(Exception e)
         {
             //MessageBox.Show(this, e.Message, "An error has occured", MessageBoxButtons.OK);
+        }
+
+        private static Assembly MyResolveEventHandler(object sender, ResolveEventArgs args)
+        {
+            Console.WriteLine("Resolving...");
+            return typeof(CB_Simulator_clientInfoLight).Assembly;
         }
     }
 }
