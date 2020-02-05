@@ -71,7 +71,7 @@ namespace CB_Simulator_Reborn_Client
 
         private async void StartReceiving ()
         {
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[10360];
 
             int n = 0;
             string message = "";
@@ -117,30 +117,36 @@ namespace CB_Simulator_Reborn_Client
 
 
 
-
-
         private static List<CB_Simulator_clientInfoLight> Deserialize(byte[] userList)
         {
-            /*BinaryFormatter bin = new BinaryFormatter();
-            var memoryStream = new MemoryStream(userList);
-            object tmp = bin.Deserialize(memoryStream);
-            List<CB_Simulator_Reborn_Server.CB_Simulator_clientInfoLight> list = tmp as List<CB_Simulator_Reborn_Server.CB_Simulator_clientInfoLight>;
-            //as List<CB_Simulator_Reborn_Server.CB_Simulator_clientInfoLight>*/
-            MemoryStream stream = new MemoryStream(userList);
-            List<CB_Simulator_clientInfoLight> list = (List<CB_Simulator_clientInfoLight>)DeserializeFromStream(stream);
-            return list;
-        }
+            List<CB_Simulator_clientInfoLight> tmpUserList = new List<CB_Simulator_clientInfoLight>();
+            int index = 0;
 
-        public static object DeserializeFromStream(MemoryStream stream)
-        {
-            //IFormatter formatter = new BinaryFormatter();
-            BinaryFormatter deserializer = new BinaryFormatter();
-            receiveTransmitClientList obj = null;
-            deserializer.Binder = new Version1ToVersion2DeserializationBinder();
+            int userCount = BitConverter.ToInt32(userList, 0);
+            while (index < userCount)
+            {
+                try
+                {
+                    int userId = BitConverter.ToInt32(userList, 4 + (4 + 512) * index);
+                    string username = Encoding.UTF8.GetString(userList, 8 + (4 + 512) * index, 512);
 
-            stream.Seek(0, SeekOrigin.Begin);
-            object o = (CB_Simulator_clientInfoLight)deserializer.Deserialize(stream);
-            return o;
+                    //int usernameStopIndex = username.IndexOf("\\");
+                    //if (usernameStopIndex > 0)
+                    //{
+                    //    username = username.Substring(0, usernameStopIndex + 1);
+                    //}
+                    username = username.Substring(0, Math.Max(0, username.IndexOf('\0')));
+
+                    CB_Simulator_clientInfoLight tmpClient = new CB_Simulator_clientInfoLight(userId, username);
+                    tmpUserList.Add(tmpClient);
+                    index++;
+                }
+                catch
+                {
+                }
+            }
+
+            return tmpUserList;
         }
 
         private void updateUserList()
@@ -154,12 +160,6 @@ namespace CB_Simulator_Reborn_Client
         private void errorHandle(Exception e)
         {
             //MessageBox.Show(this, e.Message, "An error has occured", MessageBoxButtons.OK);
-        }
-
-        private static Assembly MyResolveEventHandler(object sender, ResolveEventArgs args)
-        {
-            Console.WriteLine("Resolving...");
-            return typeof(CB_Simulator_clientInfoLight).Assembly;
         }
     }
 }

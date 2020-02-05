@@ -36,10 +36,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCPAsyncSender", "TCPAsyncSender\TCPAsyncSender.csproj", "{6F9AE0F8-5CA7-42B1-B50C-78C882501C1C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EndProject", "EndProject", "{E11675EE-9F07-471E-A9A9-0F6002E0D45A}"
-	ProjectSection(SolutionItems) = preProject
-		CB_Simulator_Reborn-Server\CB_Simulator_clientInfoLight.cs = CB_Simulator_Reborn-Server\CB_Simulator_clientInfoLight.cs
-		CB_Simulator_ClientInfoLight2.cs = CB_Simulator_ClientInfoLight2.cs
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CB_Simulator_Reborn-Server", "CB_Simulator_Reborn-Server\CB_Simulator_Reborn-Server.csproj", "{9F2D5F0E-27C0-43D1-91F3-1527B6EF6663}"
 EndProject

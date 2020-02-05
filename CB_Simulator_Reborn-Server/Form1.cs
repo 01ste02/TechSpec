@@ -124,7 +124,7 @@ namespace CB_Simulator_Reborn_Server
 
                 IPEndPoint tmpEndpoint = client.Client.LocalEndPoint as IPEndPoint;
                 CB_Simulator_clientInfo tmpClient = new CB_Simulator_clientInfo(client, tmpEndpoint.Address, clientList.Count + 1, DateTime.Now, nickname);
-                CB_Simulator_clientInfoLight tmpClientLight = new CB_Simulator_clientInfoLight(clientList.Count + 1, DateTime.Now, nickname);
+                CB_Simulator_clientInfoLight tmpClientLight = new CB_Simulator_clientInfoLight(clientList.Count + 1, nickname);
                 clientList.Add(tmpClient);
                 clientListLight.Add(tmpClientLight);
                 Console.WriteLine("Added new client");
@@ -182,39 +182,15 @@ namespace CB_Simulator_Reborn_Server
 
         private static byte[] SerializeUserList(List<CB_Simulator_clientInfoLight> userList)
         {
-            /*using (var memoryStream = new MemoryStream())
+            byte[] tmp = new byte[userList.Count * (512 + 4) + 4];
+            BitConverter.GetBytes(userList.Count).CopyTo(tmp, 0);
+            for (int i = 0; i < userList.Count; i++)
             {
-                (new BinaryFormatter()).Serialize(memoryStream, userList);
-                byte[] tmp = memoryStream.ToArray();
-                Console.WriteLine("Lenght: " + tmp.Length);
-
-                BinaryFormatter bin = new BinaryFormatter();
-                var memoryStream2 = new MemoryStream(tmp);
-                object tmp2 = bin.Deserialize(memoryStream);
-                List<CB_Simulator_clientInfoLight> list = tmp2 as List<CB_Simulator_clientInfoLight>;
-                //as List<CB_Simulator_Reborn_Server.CB_Simulator_clientInfoLight>
-
-                return tmp;
-            }*/
-
-            MemoryStream stream = SerializeToStream(userList);
-            byte[] tmp = stream.ToArray();
+                byte[] currentUser = userList[i].ToByteArray();
+                currentUser.CopyTo(tmp, i * (512 + 4) + 4);
+            }
 
             return tmp;
-        }
-
-        public static MemoryStream SerializeToStream(List<CB_Simulator_clientInfoLight> o)
-        {
-            MemoryStream stream = new MemoryStream();
-            //IFormatter formatter = new XmlSerializer();
-            transmitClientListLight transmitList = new transmitClientListLight();
-            transmitList.x = 12345;
-            transmitList.transmitList = o;
-
-            BinaryFormatter serializer = new BinaryFormatter();
-            serializer.Serialize(stream, transmitList);
-            //formatter.Serialize(stream, o);
-            return stream;
         }
 
         public void errorHandle(Exception e)
