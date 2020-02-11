@@ -29,6 +29,9 @@
         private void InitializeComponent()
         {
             this.gbxControls = new System.Windows.Forms.GroupBox();
+            this.btnClearChat = new System.Windows.Forms.Button();
+            this.btnLeave = new System.Windows.Forms.Button();
+            this.btnJoin = new System.Windows.Forms.Button();
             this.tbxUsername = new System.Windows.Forms.TextBox();
             this.lblUsername = new System.Windows.Forms.Label();
             this.lbxChat = new System.Windows.Forms.ListBox();
@@ -36,9 +39,6 @@
             this.btnSendMessage = new System.Windows.Forms.Button();
             this.lblUsers = new System.Windows.Forms.Label();
             this.lbxUsers = new System.Windows.Forms.ListBox();
-            this.btnJoin = new System.Windows.Forms.Button();
-            this.btnLeave = new System.Windows.Forms.Button();
-            this.btnClearChat = new System.Windows.Forms.Button();
             this.gbxControls.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -54,9 +54,40 @@
             this.gbxControls.TabStop = false;
             this.gbxControls.Text = "Controls";
             // 
+            // btnClearChat
+            // 
+            this.btnClearChat.Location = new System.Drawing.Point(6, 79);
+            this.btnClearChat.Name = "btnClearChat";
+            this.btnClearChat.Size = new System.Drawing.Size(101, 23);
+            this.btnClearChat.TabIndex = 2;
+            this.btnClearChat.Text = "Clear Local Chat";
+            this.btnClearChat.UseVisualStyleBackColor = true;
+            // 
+            // btnLeave
+            // 
+            this.btnLeave.Enabled = false;
+            this.btnLeave.Location = new System.Drawing.Point(7, 49);
+            this.btnLeave.Name = "btnLeave";
+            this.btnLeave.Size = new System.Drawing.Size(100, 23);
+            this.btnLeave.TabIndex = 1;
+            this.btnLeave.Text = "Leave chat";
+            this.btnLeave.UseVisualStyleBackColor = true;
+            this.btnLeave.Click += new System.EventHandler(this.btnLeave_Click);
+            // 
+            // btnJoin
+            // 
+            this.btnJoin.Location = new System.Drawing.Point(6, 19);
+            this.btnJoin.Name = "btnJoin";
+            this.btnJoin.Size = new System.Drawing.Size(101, 23);
+            this.btnJoin.TabIndex = 0;
+            this.btnJoin.Text = "Join chat";
+            this.btnJoin.UseVisualStyleBackColor = true;
+            this.btnJoin.Click += new System.EventHandler(this.btnJoin_Click);
+            // 
             // tbxUsername
             // 
             this.tbxUsername.Location = new System.Drawing.Point(131, 18);
+            this.tbxUsername.MaxLength = 120;
             this.tbxUsername.Name = "tbxUsername";
             this.tbxUsername.Size = new System.Drawing.Size(425, 20);
             this.tbxUsername.TabIndex = 1;
@@ -111,33 +142,6 @@
             this.lbxUsers.Name = "lbxUsers";
             this.lbxUsers.Size = new System.Drawing.Size(113, 277);
             this.lbxUsers.TabIndex = 7;
-            // 
-            // btnJoin
-            // 
-            this.btnJoin.Location = new System.Drawing.Point(6, 19);
-            this.btnJoin.Name = "btnJoin";
-            this.btnJoin.Size = new System.Drawing.Size(101, 23);
-            this.btnJoin.TabIndex = 0;
-            this.btnJoin.Text = "Join chat";
-            this.btnJoin.UseVisualStyleBackColor = true;
-            // 
-            // btnLeave
-            // 
-            this.btnLeave.Location = new System.Drawing.Point(7, 49);
-            this.btnLeave.Name = "btnLeave";
-            this.btnLeave.Size = new System.Drawing.Size(100, 23);
-            this.btnLeave.TabIndex = 1;
-            this.btnLeave.Text = "Leave chat";
-            this.btnLeave.UseVisualStyleBackColor = true;
-            // 
-            // btnClearChat
-            // 
-            this.btnClearChat.Location = new System.Drawing.Point(6, 79);
-            this.btnClearChat.Name = "btnClearChat";
-            this.btnClearChat.Size = new System.Drawing.Size(101, 23);
-            this.btnClearChat.TabIndex = 2;
-            this.btnClearChat.Text = "Clear Local Chat";
-            this.btnClearChat.UseVisualStyleBackColor = true;
             // 
             // CB_Simulator_Reborn_Client
             // 

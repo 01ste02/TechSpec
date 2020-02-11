@@ -130,6 +130,7 @@ namespace CB_Simulator_Reborn_Server
                 Console.WriteLine("Added new client");
 
                 lbxConsole.Items.Add(DateTime.Now + ": New client connected from " + tmpClient.ClientIP + " with the username " + tmpClient.ClientNickname);
+
                 SendUserList(client);
             }
             catch (Exception e)
@@ -149,6 +150,8 @@ namespace CB_Simulator_Reborn_Server
 
                 tmpUserListClient = client;
 
+                updateUserList();
+
                 userListDelayTimer = new Timer();
                 userListDelayTimer.Tick += new EventHandler(SendUserListSerialized);
                 userListDelayTimer.Interval = 1000; // in miliseconds
@@ -166,10 +169,12 @@ namespace CB_Simulator_Reborn_Server
             {
                 userListDelayTimer.Stop();
                 TcpClient client = tmpUserListClient;
-                tmpUserListClient = null;
+                
 
                 byte[] message = SerializeUserList(clientListLight);
                 await client.GetStream().WriteAsync(message, 0, message.Length);
+                ReceiveFromClient(tmpUserListClient);
+                tmpUserListClient = null;
             }
             catch (Exception e2)
             {
@@ -177,7 +182,14 @@ namespace CB_Simulator_Reborn_Server
             }
         }
 
-
+        private void updateUserList()
+        {
+            lbxUsers.Items.Clear();
+            for (int i = 0; i < clientList.Count; i++)
+            {
+                lbxUsers.Items.Add(clientList[i].ClientNickname);
+            }
+        }
 
 
         private static byte[] SerializeUserList(List<CB_Simulator_clientInfoLight> userList)
@@ -191,6 +203,51 @@ namespace CB_Simulator_Reborn_Server
             }
 
             return tmp;
+        }
+
+        private async void ReceiveFromClient(TcpClient client)
+        {
+            byte[] buffer = new byte[1024];
+            int n = 0;
+            string message = "";
+
+            try
+            {
+                n = await client.GetStream().ReadAsync(buffer, 0, 1024);
+                message = Encoding.UTF8.GetString(buffer, 0, n);
+                
+                if (message.Equals("Disconnecting"))
+                {
+                    IPEndPoint tmpEndpoint = client.Client.LocalEndPoint as IPEndPoint;
+                    for (int i = 0; i < clientList.Count; i++)
+                    {
+                        if (clientList[i].Client == client)
+                        {
+                            lbxConsole.Items.Add(DateTime.Now + ": Client with ip " + clientList[i].ClientIP + " and username " + clientList[i].ClientNickname + " disconnected");
+                            clientList.RemoveAt(i);
+                            clientListLight.RemoveAt(i);
+                            updateUserList();
+
+                            for (int m = 0; m < clientList.Count; m++)
+                            {
+                                SendUserList(clientList[m].Client);
+                            }
+                            break;
+                        }
+                    }
+                    client.Close();
+
+                }
+
+                if (client.Connected)
+                {
+                    ReceiveFromClient(client);
+                }
+            }
+            catch (Exception e)
+            {
+                errorHandle(e);
+            }
         }
 
         public void errorHandle(Exception e)

@@ -23,6 +23,8 @@ namespace CB_Simulator_Reborn_Client
         private readonly UdpClient broadcastReceiver = new UdpClient(broadcastPort);
         private IPAddress serverIP;
         private int serverPort;
+        private bool broadcastReceived = false;
+        private Timer isBroadcastReceivedTimer;
 
         private bool nextMessageUserList = false;
         private List<CB_Simulator_clientInfoLight> userList;
@@ -32,7 +34,6 @@ namespace CB_Simulator_Reborn_Client
         public CB_Simulator_Reborn_Client()
         {
             InitializeComponent();
-            startBroadcastListening();
         }
 
         private void startBroadcastListening()
@@ -51,7 +52,16 @@ namespace CB_Simulator_Reborn_Client
             Console.WriteLine("Broadcast Received: " + broadcastString + " " + serverIP.ToString());
 
             broadcastReceiver.Dispose();
-            ConnectToServer();
+            broadcastReceived = true;
+        }
+
+        private void isBroadcastReceived (object sender, EventArgs e)
+        {
+            if (broadcastReceived)
+            {
+                ConnectToServer();
+                isBroadcastReceivedTimer.Stop();
+            }
         }
 
         private async void ConnectToServer()
@@ -71,48 +81,67 @@ namespace CB_Simulator_Reborn_Client
 
         private async void StartReceiving ()
         {
-            byte[] buffer = new byte[10360];
-
-            int n = 0;
-            string message = "";
-
-            try
+            if (Client.Connected)
             {
-                n = await Client.GetStream().ReadAsync(buffer, 0, 4096);
+                byte[] buffer = new byte[10360];
 
-                if (!nextMessageUserList)
+                int n = 0;
+                string message = "";
+
+                try
                 {
-                    message = Encoding.UTF8.GetString(buffer, 0, n);
+                    n = await Client.GetStream().ReadAsync(buffer, 0, 4096);
+
+                    if (!nextMessageUserList)
+                    {
+                        message = Encoding.UTF8.GetString(buffer, 0, n);
+                    }
+                    else
+                    {
+                        nextMessageUserList = false;
+                        userList = Deserialize(buffer);
+                        updateUserList();
+                        lbxChat.Items.Add(DateTime.Now + ": Connected to server. Say hello!");
+                        btnLeave.Enabled = true;
+                    }
+
+                    if (message.Equals("R-A"))
+                    {
+                        SendAuth();
+                    }
+                    else if (message.Equals("U-L-98759183"))
+                    {
+                        nextMessageUserList = true;
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    nextMessageUserList = false;
-                    userList = Deserialize(buffer);
-                    updateUserList();
+                    errorHandle(e);
                 }
 
-                if (message.Equals("R-A"))
-                {
-                    SendAuth();
-                }
-                else if (message.Equals("U-L-98759183"))
-                {
-                    nextMessageUserList = true;
-                }
+
+                StartReceiving();
             }
-            catch (Exception e)
-            {
-                errorHandle(e);
-            }
-
-            StartReceiving();
         }
 
         private async void SendAuth()
         {
-            string message = "Auth: Nickname: nickname"; //Fix
+            string message = "Auth: Nickname: " + tbxUsername.Text;
             byte[] messageBytes = Encoding.UTF8.GetBytes(message);
             await Client.GetStream().WriteAsync(messageBytes, 0, messageBytes.Length);
+        }
+
+        private async void SendDisconnect()
+        {
+            string message = "Disconnecting";
+            byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+            await Client.GetStream().WriteAsync(messageBytes, 0, messageBytes.Length);
+            Client.Close();
+
+            lbxChat.Items.Add(DateTime.Now + ": Disconnected from server");
+            updateUserList();
+            btnJoin.Enabled = true;
+            btnLeave.Enabled = false;
         }
 
 
@@ -151,6 +180,7 @@ namespace CB_Simulator_Reborn_Client
 
         private void updateUserList()
         {
+            lbxUsers.Items.Clear();
             for (int i = 0; i < userList.Count; i++)
             {
                 lbxUsers.Items.Add(userList[i].ClientNickname);
@@ -159,7 +189,31 @@ namespace CB_Simulator_Reborn_Client
 
         private void errorHandle(Exception e)
         {
-            //MessageBox.Show(this, e.Message, "An error has occured", MessageBoxButtons.OK);
+            MessageBox.Show(this, e.Message, "An error has occured", MessageBoxButtons.OK);
+        }
+
+        private void btnJoin_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(tbxUsername.Text) && !string.IsNullOrWhiteSpace(tbxUsername.Text))
+            {
+                startBroadcastListening();
+
+                isBroadcastReceivedTimer = new Timer();
+                isBroadcastReceivedTimer.Tick += new EventHandler(isBroadcastReceived);
+                isBroadcastReceivedTimer.Interval = 1000; // in miliseconds
+                isBroadcastReceivedTimer.Start();
+
+                btnJoin.Enabled = false;
+            }
+            else
+            {
+                MessageBox.Show(this, "Please enter a valid username", "Invalid Username", MessageBoxButtons.OK);
+            }
+        }
+
+        private void btnLeave_Click(object sender, EventArgs e)
+        {
+            SendDisconnect();
         }
     }
 }
