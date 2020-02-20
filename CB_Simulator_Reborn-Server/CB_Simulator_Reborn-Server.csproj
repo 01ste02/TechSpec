@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="CB_Simulator_clientInfoLight.cs" />
     <Compile Include="CB_Simulator_clientInfo.cs" />
+    <Compile Include="ChatMessage.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

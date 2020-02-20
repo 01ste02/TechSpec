@@ -36,9 +36,6 @@ namespace CB_Simulator_Reborn_Server
 
         string authRequestMessage = "R-A";
 
-        private Timer userListDelayTimer;
-        private TcpClient tmpUserListClient;
-
         public CB_Simulator_Reborn_Server()
         {
             InitializeComponent();
@@ -131,7 +128,11 @@ namespace CB_Simulator_Reborn_Server
 
                 lbxConsole.Items.Add(DateTime.Now + ": New client connected from " + tmpClient.ClientIP + " with the username " + tmpClient.ClientNickname);
 
-                SendUserList(client);
+                for (int m = 0; m < clientList.Count; m++)
+                {
+                    SendUserList(clientList[m].Client);
+                }
+                //SendUserList(client);
             }
             catch (Exception e)
             {
@@ -148,12 +149,10 @@ namespace CB_Simulator_Reborn_Server
 
                 await client.GetStream().WriteAsync(messageHeader, 0, messageHeader.Length);
 
-                tmpUserListClient = client;
-
                 updateUserList();
 
-                userListDelayTimer = new Timer();
-                userListDelayTimer.Tick += new EventHandler(SendUserListSerialized);
+                Timer userListDelayTimer = new Timer();
+                userListDelayTimer.Tick += (sender, e) => SendUserListSerialized(sender, e, client);
                 userListDelayTimer.Interval = 1000; // in miliseconds
                 userListDelayTimer.Start();
             }
@@ -163,18 +162,17 @@ namespace CB_Simulator_Reborn_Server
             }
         }
 
-        private async void SendUserListSerialized (object sender, EventArgs e)
+        private async void SendUserListSerialized (object sender, EventArgs e, TcpClient client)
         {
             try
             {
-                userListDelayTimer.Stop();
-                TcpClient client = tmpUserListClient;
+                Timer tmp = sender as Timer;
+                tmp.Stop();
                 
 
                 byte[] message = SerializeUserList(clientListLight);
                 await client.GetStream().WriteAsync(message, 0, message.Length);
-                ReceiveFromClient(tmpUserListClient);
-                tmpUserListClient = null;
+                ReceiveFromClient(client);
             }
             catch (Exception e2)
             {
@@ -191,7 +189,6 @@ namespace CB_Simulator_Reborn_Server
             }
         }
 
-
         private static byte[] SerializeUserList(List<CB_Simulator_clientInfoLight> userList)
         {
             byte[] tmp = new byte[userList.Count * (512 + 4) + 4];
@@ -207,13 +204,13 @@ namespace CB_Simulator_Reborn_Server
 
         private async void ReceiveFromClient(TcpClient client)
         {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[10360];
             int n = 0;
             string message = "";
 
             try
             {
-                n = await client.GetStream().ReadAsync(buffer, 0, 1024);
+                n = await client.GetStream().ReadAsync(buffer, 0, 10360);
                 message = Encoding.UTF8.GetString(buffer, 0, n);
                 
                 if (message.Equals("Disconnecting"))
@@ -238,6 +235,27 @@ namespace CB_Simulator_Reborn_Server
                     client.Close();
 
                 }
+                else if (message.Substring(0, 3).Equals("C-M")) 
+                {
+                    ChatMessage chatMessage = new ChatMessage("None", "None");
+
+                    for (int i = 0; i < clientList.Count; i++)
+                    {
+                        if (clientList[i].Client == client)
+                        {
+                            chatMessage = new ChatMessage(clientList[i].ClientNickname, message.Substring(3));
+                            break;
+                        }
+                    }
+
+                    for (int i = 0; i < clientList.Count; i++)
+                    {
+                        if (clientList[i].Client != client)
+                        {
+                            ForwardMessageToClients(clientList[i].Client, chatMessage);
+                        }
+                    }
+                }
 
                 if (client.Connected)
                 {
@@ -250,19 +268,46 @@ namespace CB_Simulator_Reborn_Server
             }
         }
 
-        public void errorHandle(Exception e)
+        public async void ForwardMessageToClients (TcpClient client, ChatMessage message)
         {
-            MessageBox.Show(this, e.Message, "An error has occured", MessageBoxButtons.OK);
+            try
+            {
+                byte[] messageHeader = Encoding.UTF8.GetBytes("C-M");
+
+                await client.GetStream().WriteAsync(messageHeader, 0, messageHeader.Length);
+
+                Timer forwardMessageTimer = new Timer();
+                forwardMessageTimer.Tick += (sender, e) => ForwardSerializedMessageToClients(sender, e, client, message);
+                forwardMessageTimer.Interval = 1000; // in miliseconds
+                forwardMessageTimer.Start();
+            }
+            catch (Exception e)
+            {
+                errorHandle(e);
+            }
         }
 
-        /*
-         * Server broadcastar, klient hittar ip och får port från broadcast-meddelande. Klient kan även speca IP
-         * Server lyssnar, lägger till klienter i lista med klient-klass (innehåller info. T.ex ip, id, connection time, nickname, last message (?), last seen time (?))
-         * Tar emot data från alla klienter, sänder vidare till alla andra. Sänder meddelande då någon ansluter / kopplar från
-         * 
-         * Klient lyssnar efter broadcast. IP kan även specas. 
-         * Ansluter till port från broadcast, sänder port den lyssnar på. Server ansluter.
-         * Klient tar emot lista med klient-klass. Får meddelande då någon ansluter/kopplar från
-         * */
+        public async void ForwardSerializedMessageToClients (object sender, EventArgs e, TcpClient client, ChatMessage message)
+        {
+            try
+            {
+                Timer tmp = sender as Timer;
+                tmp.Stop();
+
+
+                byte[] chatMessage = message.ToByteArray();
+                await client.GetStream().WriteAsync(chatMessage, 0, chatMessage.Length);
+                ReceiveFromClient(client);
+            }
+            catch (Exception e2)
+            {
+                errorHandle(e2);
+            }
+        }
+
+        public void errorHandle(Exception e)
+        {
+            MessageBox.Show(this, e.Message, "An error has occured in the server", MessageBoxButtons.OK);
+        }
     }
 }

@@ -62,6 +62,7 @@
             this.btnClearChat.TabIndex = 2;
             this.btnClearChat.Text = "Clear Local Chat";
             this.btnClearChat.UseVisualStyleBackColor = true;
+            this.btnClearChat.Click += new System.EventHandler(this.btnClearChat_Click);
             // 
             // btnLeave
             // 
@@ -103,7 +104,11 @@
             // 
             // lbxChat
             // 
+            this.lbxChat.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lbxChat.FormattingEnabled = true;
+            this.lbxChat.HorizontalScrollbar = true;
             this.lbxChat.Location = new System.Drawing.Point(131, 44);
             this.lbxChat.Name = "lbxChat";
             this.lbxChat.Size = new System.Drawing.Size(425, 394);
@@ -112,6 +117,7 @@
             // tbxMessage
             // 
             this.tbxMessage.Location = new System.Drawing.Point(12, 444);
+            this.tbxMessage.MaxLength = 2048;
             this.tbxMessage.Multiline = true;
             this.tbxMessage.Name = "tbxMessage";
             this.tbxMessage.Size = new System.Drawing.Size(482, 41);
@@ -125,6 +131,7 @@
             this.btnSendMessage.TabIndex = 5;
             this.btnSendMessage.Text = "Send";
             this.btnSendMessage.UseVisualStyleBackColor = true;
+            this.btnSendMessage.Click += new System.EventHandler(this.btnSendMessage_Click);
             // 
             // lblUsers
             // 

@@ -20,13 +20,15 @@ namespace CB_Simulator_Reborn_Client
     public partial class CB_Simulator_Reborn_Client : Form
     {
         private const int broadcastPort = 15000;
-        private readonly UdpClient broadcastReceiver = new UdpClient(broadcastPort);
+        private UdpClient broadcastReceiver;
         private IPAddress serverIP;
         private int serverPort;
         private bool broadcastReceived = false;
         private Timer isBroadcastReceivedTimer;
 
         private bool nextMessageUserList = false;
+        private bool nextMessageChatMessage = false;
+        private bool alreadyConnected = false;
         private List<CB_Simulator_clientInfoLight> userList;
 
         private TcpClient Client;
@@ -38,6 +40,7 @@ namespace CB_Simulator_Reborn_Client
 
         private void startBroadcastListening()
         {
+            broadcastReceiver = new UdpClient(broadcastPort);
             broadcastReceiver.EnableBroadcast = true;
             broadcastReceiver.BeginReceive(receiveBroadcast, new Object());
         }
@@ -90,33 +93,98 @@ namespace CB_Simulator_Reborn_Client
 
                 try
                 {
-                    n = await Client.GetStream().ReadAsync(buffer, 0, 4096);
+                    n = await Client.GetStream().ReadAsync(buffer, 0, 10360);
 
-                    if (!nextMessageUserList)
+                    
+                    if (nextMessageChatMessage)
                     {
-                        message = Encoding.UTF8.GetString(buffer, 0, n);
+                        nextMessageChatMessage = false;
+                        ChatMessage chatMessage = DeserializeChatMessage(buffer);
+
+                        lbxChat.Items.Add(DateTime.Now + " " + chatMessage.FromUser + ": " + chatMessage.Message);
+                    }
+                    else if (nextMessageUserList)
+                    {
+                        nextMessageUserList = false;
+                        userList = DeserializeUserList(buffer);
+
+                        if (!alreadyConnected)
+                        {
+                            lbxChat.Items.Add(DateTime.Now + ": Connected to server. Say hello!");
+                            btnLeave.Enabled = true;
+                            alreadyConnected = true;
+                        }
+                        else
+                        {
+                            if (lbxUsers.Items.Count > userList.Count)
+                            {
+                                string[] tmpUsers = new string[userList.Count];
+                                for (int i = 0; i < userList.Count; i++)
+                                {
+                                    tmpUsers[i] = userList[i].ClientNickname;
+                                }
+
+                                for (int i = 0; i < lbxUsers.Items.Count; i++)
+                                {
+                                    if (!tmpUsers.Contains(lbxUsers.Items[i]))
+                                    {
+                                        lbxChat.Items.Add(DateTime.Now + ": " + lbxUsers.Items[i] + " disconnected from the server.");
+                                    }
+                                }
+                            }
+                            for (int i = 0; i < userList.Count; i++)
+                            {
+                                if (!lbxUsers.Items.Contains(userList[i].ClientNickname))
+                                {
+                                    lbxChat.Items.Add(DateTime.Now + ": " + userList[i].ClientNickname + " connected to the server. Say hello!");
+                                }
+                            }
+                            
+                            btnLeave.Enabled = true;
+                            alreadyConnected = true;
+                        }
+
+                        updateUserList();
                     }
                     else
                     {
-                        nextMessageUserList = false;
-                        userList = Deserialize(buffer);
-                        updateUserList();
-                        lbxChat.Items.Add(DateTime.Now + ": Connected to server. Say hello!");
-                        btnLeave.Enabled = true;
+                        message = Encoding.UTF8.GetString(buffer, 0, n);
                     }
 
-                    if (message.Equals("R-A"))
+                    if (message.Equals("R-A")) //Server is requesting authentication
                     {
                         SendAuth();
                     }
-                    else if (message.Equals("U-L-98759183"))
+                    else if (message.Equals("U-L-98759183")) //UserList coming in next message
                     {
                         nextMessageUserList = true;
+                    }
+                    else if (message.Equals("C-M")) //Server is sending a chat message in the next message
+                    {
+                        nextMessageChatMessage = true;
+                    }
+                    else if (message.Equals("K-D")) //Server has sent a kick request to the client. Connection will be terminated.
+                    {
+                        Client.Close();
+                        MessageBox.Show(this, "You have been kicked from this chat-server by an administrator. Please adhere to the rules of the server and contact an administrator if you believe this action to have been wrongly performed.", "You have been Kicked", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    else if (message.Equals("C-C")) //Server is force-clearing all messages from the chat.
+                    {
+                        lbxChat.Items.Clear();
+                        MessageBox.Show(this, "The chat has been force-cleared by the server.", "Chat Force-Cleared by Server", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    }
+                    else if (message.Equals("S-C")) //Server is closing. Prepare for session close.
+                    {
+                        Client.Close();
+                        MessageBox.Show(this, "This server has been closed. Please try to log in later if this is an unexpected event.", "Server Closed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
                 catch (Exception e)
                 {
-                    errorHandle(e);
+                    if (Client.Connected)
+                    {
+                        errorHandle(e);
+                    }
                 }
 
 
@@ -127,6 +195,7 @@ namespace CB_Simulator_Reborn_Client
         private async void SendAuth()
         {
             string message = "Auth: Nickname: " + tbxUsername.Text;
+            tbxUsername.Enabled = false;
             byte[] messageBytes = Encoding.UTF8.GetBytes(message);
             await Client.GetStream().WriteAsync(messageBytes, 0, messageBytes.Length);
         }
@@ -136,17 +205,40 @@ namespace CB_Simulator_Reborn_Client
             string message = "Disconnecting";
             byte[] messageBytes = Encoding.UTF8.GetBytes(message);
             await Client.GetStream().WriteAsync(messageBytes, 0, messageBytes.Length);
-            Client.Close();
+
+            try
+            {
+                if (Client.Connected)
+                {
+                    Client.Close();
+                }
+                else
+                {
+                    Client.Dispose();
+                }
+            }
+            catch
+            {
+                //Do nothing, client is already disposed and closed. Error is wrongly generated by TCPClient Class
+            }
 
             lbxChat.Items.Add(DateTime.Now + ": Disconnected from server");
-            updateUserList();
+            lbxUsers.Items.Clear();
             btnJoin.Enabled = true;
             btnLeave.Enabled = false;
+            tbxUsername.Enabled = true;
+            alreadyConnected = false;
+        }
+
+        private async void SendMessage(string message)
+        {
+            message = "C-M" + message;
+            byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+            await Client.GetStream().WriteAsync(messageBytes, 0, messageBytes.Length);
         }
 
 
-
-        private static List<CB_Simulator_clientInfoLight> Deserialize(byte[] userList)
+        private static List<CB_Simulator_clientInfoLight> DeserializeUserList (byte[] userList)
         {
             List<CB_Simulator_clientInfoLight> tmpUserList = new List<CB_Simulator_clientInfoLight>();
             int index = 0;
@@ -178,6 +270,19 @@ namespace CB_Simulator_Reborn_Client
             return tmpUserList;
         }
 
+        private static ChatMessage DeserializeChatMessage (byte[] message)
+        {
+            string fromUser = Encoding.UTF8.GetString(message, 0, 512);
+            fromUser = fromUser.Substring(0, Math.Max(0, fromUser.IndexOf('\0')));
+
+            string sentMessage = Encoding.UTF8.GetString(message, 512, 2048);
+            sentMessage = sentMessage.Substring(0, Math.Max(0, sentMessage.IndexOf('\0')));
+
+            ChatMessage tmpChatMessage = new ChatMessage(fromUser, sentMessage);
+
+            return tmpChatMessage;
+        }
+
         private void updateUserList()
         {
             lbxUsers.Items.Clear();
@@ -189,7 +294,7 @@ namespace CB_Simulator_Reborn_Client
 
         private void errorHandle(Exception e)
         {
-            MessageBox.Show(this, e.Message, "An error has occured", MessageBoxButtons.OK);
+            MessageBox.Show(this, e.Message, "An error has occured in the client", MessageBoxButtons.OK);
         }
 
         private void btnJoin_Click(object sender, EventArgs e)
@@ -214,6 +319,22 @@ namespace CB_Simulator_Reborn_Client
         private void btnLeave_Click(object sender, EventArgs e)
         {
             SendDisconnect();
+        }
+
+        private void btnClearChat_Click(object sender, EventArgs e)
+        {
+            lbxChat.Items.Clear();
+            lbxChat.Items.Add("Observe that the chat has only been cleared for this client, and not other clients connected to the same server.");
+        }
+
+        private void btnSendMessage_Click(object sender, EventArgs e)
+        {
+            if (!String.IsNullOrEmpty(tbxMessage.Text) && !String.IsNullOrWhiteSpace(tbxMessage.Text))
+            {
+                lbxChat.Items.Add(DateTime.Now + " " + tbxUsername.Text + ": " + tbxMessage.Text);
+                SendMessage(tbxMessage.Text);
+                tbxMessage.Text = "";
+            }
         }
     }
 }
