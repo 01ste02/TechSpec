@@ -137,8 +137,6 @@ namespace CB_Simulator_Reborn_Server
                 message = Encoding.UTF8.GetString(buffer, 0, n);
                 string nickname = message.Substring(15); //Cut out the auth header
 
-                nickname = nickname.Substring(0, Math.Max(0, nickname.IndexOf('\0'))); //Remove any trailing whitespaces
-
                 IPEndPoint tmpEndpoint = client.Client.LocalEndPoint as IPEndPoint;
                 CB_Simulator_clientInfo tmpClient = new CB_Simulator_clientInfo(client, tmpEndpoint.Address, clientList.Count + 1, DateTime.Now, nickname); //Create all the nessecary records from the client
                 CB_Simulator_clientInfoLight tmpClientLight = new CB_Simulator_clientInfoLight(clientList.Count + 1, nickname); //Create a light record, to transmit in a user list in the future (unsafe to broadcast all info)
