@@ -1,8 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿/* Copyright (C) StenIT - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Oskar Stenberg <oskar@stenit.eu>, January-February 2020
+ */
+
+
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CB_Simulator_Reborn_Server
 {
