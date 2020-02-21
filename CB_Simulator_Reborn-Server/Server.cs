@@ -47,12 +47,12 @@ namespace CB_Simulator_Reborn_Server
         public void InitBroadcastTimer() //Start the timer to broadcast the server port once per second. Could be sped up, but kept here as not to flood the network with broadcasts.
         {
             broadcastTimer = new Timer();
-            broadcastTimer.Tick += new EventHandler(broadcastTimer_Tick);
+            broadcastTimer.Tick += new EventHandler(BroadcastTimer_Tick);
             broadcastTimer.Interval = 1000; // in miliseconds
             broadcastTimer.Start();
         }
 
-        private void broadcastTimer_Tick(object sender, EventArgs e)
+        private void BroadcastTimer_Tick(object sender, EventArgs e)
         {
             Broadcaster(); //Event handler didn't like being async, so this calls the async broadcast method.
         }
@@ -69,7 +69,7 @@ namespace CB_Simulator_Reborn_Server
             {
                 if (broadcaster.EnableBroadcast == true) //The await generates an error if the broadcast is stopped (+disabled) when it is in the middle of transmitting. Don't throw the error unless it is an unexpected, actual error.
                 {
-                    errorHandle(e);
+                    ErrorHandle(e);
                 }
             }
         }
@@ -84,7 +84,7 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e)
             {
-                errorHandle(e);
+                ErrorHandle(e);
             }
         }
 
@@ -105,7 +105,7 @@ namespace CB_Simulator_Reborn_Server
             {
                 if (broadcaster.EnableBroadcast == true) //If this is false, the server shouldn't be accepting clients. Error generated in fault due to timing of stop.
                 {
-                    errorHandle(e);
+                    ErrorHandle(e);
                 }
             }
         }
@@ -121,7 +121,7 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e)
             {
-                errorHandle(e);
+                ErrorHandle(e);
             }
         }
 
@@ -153,7 +153,7 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e)
             {
-                errorHandle(e);
+                ErrorHandle(e);
             }
 
         }
@@ -166,7 +166,7 @@ namespace CB_Simulator_Reborn_Server
 
                 await client.GetStream().WriteAsync(messageHeader, 0, messageHeader.Length);
 
-                updateUserList(); //Update the userList in the server GUI, could be done outside this function, but added here to minimize code. Performance impact not notable.
+                UpdateUserList(); //Update the userList in the server GUI, could be done outside this function, but added here to minimize code. Performance impact not notable.
 
                 Timer userListDelayTimer = new Timer(); //Broadcast the user list in 500 mSeconds when the client is ready. Keep as short as possible as to assure that the client is still waiting for the list.
                 userListDelayTimer.Tick += (sender, e) => SendUserListSerialized(sender, e, client);
@@ -175,7 +175,7 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e)
             {
-                errorHandle(e);
+                ErrorHandle(e);
             }
         }
 
@@ -193,11 +193,11 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e2)
             {
-                errorHandle(e2);
+                ErrorHandle(e2);
             }
         }
 
-        private void updateUserList()
+        private void UpdateUserList()
         {
             lbxUsers.Items.Clear(); //Clear the list and refill it with the latest user list
             for (int i = 0; i < clientList.Count; i++)
@@ -240,7 +240,7 @@ namespace CB_Simulator_Reborn_Server
                             lbxConsole.Items.Add(DateTime.Now + ": Client with ip " + clientList[i].ClientIP + " and username " + clientList[i].ClientNickname + " disconnected");
                             clientList.RemoveAt(i);
                             clientListLight.RemoveAt(i);
-                            updateUserList();
+                            UpdateUserList();
 
                             for (int m = 0; m < clientList.Count; m++)
                             {
@@ -283,7 +283,7 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e)
             {
-                errorHandle(e);
+                ErrorHandle(e);
             }
         }
 
@@ -301,7 +301,7 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e)
             {
-                errorHandle(e);
+                ErrorHandle(e);
             }
         }
 
@@ -319,11 +319,11 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e2)
             {
-                errorHandle(e2);
+                ErrorHandle(e2);
             }
         }
 
-        private void btnStart_Click(object sender, EventArgs e)
+        private void BtnStart_Click(object sender, EventArgs e)
         {
             InitBroadcastTimer(); //Start the broadcast, accept new clients and enable all the functions of the program
             StartListening();
@@ -337,7 +337,7 @@ namespace CB_Simulator_Reborn_Server
             btnSendMessage.Enabled = true;
         }
 
-        private void btnStop_Click(object sender, EventArgs e)
+        private void BtnStop_Click(object sender, EventArgs e)
         {
             broadcastTimer.Stop(); //Stop accepting new clients, but currently connected clients may stay connected
             serverListener.Stop();
@@ -347,7 +347,7 @@ namespace CB_Simulator_Reborn_Server
             btnStart.Enabled = true;
         }
 
-        private async void btnKick_Click(object sender, EventArgs e)
+        private async void BtnKick_Click(object sender, EventArgs e)
         {
             try
             {
@@ -369,7 +369,7 @@ namespace CB_Simulator_Reborn_Server
                             lbxConsole.Items.Add(DateTime.Now + ": Client with ip " + clientList[i].ClientIP + " and username " + clientList[i].ClientNickname + " disconnected");
                             clientList.RemoveAt(i);
                             clientListLight.RemoveAt(i);
-                            updateUserList();
+                            UpdateUserList();
 
                             for (int m = 0; m < clientList.Count; m++)
                             {
@@ -387,11 +387,11 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e2)
             {
-                errorHandle(e2);
+                ErrorHandle(e2);
             }
         }
 
-        private async void btnStopServer_Click(object sender, EventArgs e)
+        private async void BtnStopServer_Click(object sender, EventArgs e)
         {
             try
             {
@@ -407,7 +407,7 @@ namespace CB_Simulator_Reborn_Server
                     lbxConsole.Items.Add(DateTime.Now + ": Client with ip " + clientList[i].ClientIP + " and username " + clientList[i].ClientNickname + " disconnected");
                     clientList.RemoveAt(i);
                     clientListLight.RemoveAt(i);
-                    updateUserList();
+                    UpdateUserList();
 
                     for (int m = 0; m < clientList.Count; m++)
                     {
@@ -427,17 +427,17 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e2)
             {
-                errorHandle(e2);
+                ErrorHandle(e2);
             }
         }
 
-        private void btnClearConsole_Click(object sender, EventArgs e)
+        private void BtnClearConsole_Click(object sender, EventArgs e)
         {
             lbxConsole.Items.Clear();
             lbxConsole.Items.Add("Observe that the console has only been cleared for the server, and not the clients. Use the \"Clear All\" button to clear the chat for all clients.");
         }
 
-        private async void btnClearAll_Click(object sender, EventArgs e)
+        private async void BtnClearAll_Click(object sender, EventArgs e)
         {
             try
             {
@@ -454,11 +454,11 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e2)
             {
-                errorHandle(e2);
+                ErrorHandle(e2);
             }
         }
 
-        private async void btnSaveLog_Click(object sender, EventArgs e)
+        private async void BtnSaveLog_Click(object sender, EventArgs e)
         {
             try
             {
@@ -484,11 +484,11 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e2)
             {
-                errorHandle(e2);
+                ErrorHandle(e2);
             }
         }
 
-        private void btnSendMessage_Click(object sender, EventArgs e)
+        private void BtnSendMessage_Click(object sender, EventArgs e)
         {
             try
             {
@@ -510,16 +510,16 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e2)
             {
-                errorHandle(e2);
+                ErrorHandle(e2);
             }
         }
 
-        private void formClosing(object sender, FormClosedEventArgs e)
+        private void TriggerFormClosing(object sender, FormClosedEventArgs e)
         {
-            btnStopServer_Click(this, e);
+            BtnStopServer_Click(this, e);
         }
 
-        public void errorHandle(Exception e)
+        public void ErrorHandle(Exception e)
         {
             MessageBox.Show(this, e.Message, "An error has occured in the server", MessageBoxButtons.OK, MessageBoxIcon.Warning); //Tell the user that an error has occured, with a brief error description for the support team
         }

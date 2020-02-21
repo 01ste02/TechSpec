@@ -69,7 +69,7 @@
             this.btnSaveLog.TabIndex = 6;
             this.btnSaveLog.Text = "Save log";
             this.btnSaveLog.UseVisualStyleBackColor = true;
-            this.btnSaveLog.Click += new System.EventHandler(this.btnSaveLog_Click);
+            this.btnSaveLog.Click += new System.EventHandler(this.BtnSaveLog_Click);
             // 
             // btnClearAll
             // 
@@ -80,7 +80,7 @@
             this.btnClearAll.TabIndex = 5;
             this.btnClearAll.Text = "Clear All";
             this.btnClearAll.UseVisualStyleBackColor = true;
-            this.btnClearAll.Click += new System.EventHandler(this.btnClearAll_Click);
+            this.btnClearAll.Click += new System.EventHandler(this.BtnClearAll_Click);
             // 
             // btnClearConsole
             // 
@@ -91,7 +91,7 @@
             this.btnClearConsole.TabIndex = 4;
             this.btnClearConsole.Text = "Clear Console";
             this.btnClearConsole.UseVisualStyleBackColor = true;
-            this.btnClearConsole.Click += new System.EventHandler(this.btnClearConsole_Click);
+            this.btnClearConsole.Click += new System.EventHandler(this.BtnClearConsole_Click);
             // 
             // btnStopServer
             // 
@@ -102,7 +102,7 @@
             this.btnStopServer.TabIndex = 3;
             this.btnStopServer.Text = "Stop Server";
             this.btnStopServer.UseVisualStyleBackColor = true;
-            this.btnStopServer.Click += new System.EventHandler(this.btnStopServer_Click);
+            this.btnStopServer.Click += new System.EventHandler(this.BtnStopServer_Click);
             // 
             // btnKick
             // 
@@ -113,7 +113,7 @@
             this.btnKick.TabIndex = 2;
             this.btnKick.Text = "Kick";
             this.btnKick.UseVisualStyleBackColor = true;
-            this.btnKick.Click += new System.EventHandler(this.btnKick_Click);
+            this.btnKick.Click += new System.EventHandler(this.BtnKick_Click);
             // 
             // btnStop
             // 
@@ -124,7 +124,7 @@
             this.btnStop.TabIndex = 1;
             this.btnStop.Text = "Stop";
             this.btnStop.UseVisualStyleBackColor = true;
-            this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
+            this.btnStop.Click += new System.EventHandler(this.BtnStop_Click);
             // 
             // btnStart
             // 
@@ -134,7 +134,7 @@
             this.btnStart.TabIndex = 0;
             this.btnStart.Text = "Start All";
             this.btnStart.UseVisualStyleBackColor = true;
-            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
+            this.btnStart.Click += new System.EventHandler(this.BtnStart_Click);
             // 
             // lbxUsers
             // 
@@ -182,7 +182,7 @@
             this.btnSendMessage.TabIndex = 5;
             this.btnSendMessage.Text = "Send";
             this.btnSendMessage.UseVisualStyleBackColor = true;
-            this.btnSendMessage.Click += new System.EventHandler(this.btnSendMessage_Click);
+            this.btnSendMessage.Click += new System.EventHandler(this.BtnSendMessage_Click);
             // 
             // saveConsoleDialog
             // 
@@ -201,7 +201,7 @@
             this.Controls.Add(this.gbxControls);
             this.Name = "CB_Simulator_Reborn_Server";
             this.Text = "CB Simulator Reborn - Server Console";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.formClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.TriggerFormClosing);
             this.gbxControls.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();

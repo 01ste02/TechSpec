@@ -62,7 +62,7 @@
             this.btnClearChat.TabIndex = 2;
             this.btnClearChat.Text = "Clear Local Chat";
             this.btnClearChat.UseVisualStyleBackColor = true;
-            this.btnClearChat.Click += new System.EventHandler(this.btnClearChat_Click);
+            this.btnClearChat.Click += new System.EventHandler(this.BtnClearChat_Click);
             // 
             // btnLeave
             // 
@@ -73,7 +73,7 @@
             this.btnLeave.TabIndex = 1;
             this.btnLeave.Text = "Leave chat";
             this.btnLeave.UseVisualStyleBackColor = true;
-            this.btnLeave.Click += new System.EventHandler(this.btnLeave_Click);
+            this.btnLeave.Click += new System.EventHandler(this.BtnLeave_Click);
             // 
             // btnJoin
             // 
@@ -83,7 +83,7 @@
             this.btnJoin.TabIndex = 0;
             this.btnJoin.Text = "Join chat";
             this.btnJoin.UseVisualStyleBackColor = true;
-            this.btnJoin.Click += new System.EventHandler(this.btnJoin_Click);
+            this.btnJoin.Click += new System.EventHandler(this.BtnJoin_Click);
             // 
             // tbxUsername
             // 
@@ -131,7 +131,7 @@
             this.btnSendMessage.TabIndex = 5;
             this.btnSendMessage.Text = "Send";
             this.btnSendMessage.UseVisualStyleBackColor = true;
-            this.btnSendMessage.Click += new System.EventHandler(this.btnSendMessage_Click);
+            this.btnSendMessage.Click += new System.EventHandler(this.BtnSendMessage_Click);
             // 
             // lblUsers
             // 

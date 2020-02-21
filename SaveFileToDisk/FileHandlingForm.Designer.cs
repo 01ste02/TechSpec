@@ -47,7 +47,7 @@
             this.btnReplace.TabIndex = 0;
             this.btnReplace.Text = "Replace";
             this.btnReplace.UseVisualStyleBackColor = true;
-            this.btnReplace.Click += new System.EventHandler(this.btnReplace_Click);
+            this.btnReplace.Click += new System.EventHandler(this.BtnReplace_Click);
             // 
             // tbxReplace
             // 
@@ -80,7 +80,7 @@
             this.btnOpen.TabIndex = 5;
             this.btnOpen.Text = "Open File";
             this.btnOpen.UseVisualStyleBackColor = true;
-            this.btnOpen.Click += new System.EventHandler(this.btnOpen_Click);
+            this.btnOpen.Click += new System.EventHandler(this.BtnOpen_Click);
             // 
             // btnSave
             // 
@@ -90,7 +90,7 @@
             this.btnSave.TabIndex = 6;
             this.btnSave.Text = "Save File";
             this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            this.btnSave.Click += new System.EventHandler(this.BtnSave_Click);
             // 
             // rtbText
             // 

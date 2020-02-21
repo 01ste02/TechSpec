@@ -18,7 +18,7 @@ namespace SaveFileToDisk
             InitializeComponent();
         }
 
-        private void btnReplace_Click(object sender, EventArgs e)
+        private void BtnReplace_Click(object sender, EventArgs e)
         {
             string replace = tbxReplace.Text;
             string replaceWith = tbxReplaceWith.Text;
@@ -33,7 +33,7 @@ namespace SaveFileToDisk
             }
         }
 
-        private void btnOpen_Click(object sender, EventArgs e)
+        private void BtnOpen_Click(object sender, EventArgs e)
         {
             DialogResult result = dlgOpen.ShowDialog();
 
@@ -52,7 +52,7 @@ namespace SaveFileToDisk
         }
 
         
-        private void btnSave_Click(object sender, EventArgs e)
+        private void BtnSave_Click(object sender, EventArgs e)
         {
             DialogResult result = dlgSave.ShowDialog();
 
