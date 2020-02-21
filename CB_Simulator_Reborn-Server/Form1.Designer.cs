@@ -41,6 +41,7 @@
             this.lbxConsole = new System.Windows.Forms.ListBox();
             this.tbxMessage = new System.Windows.Forms.TextBox();
             this.btnSendMessage = new System.Windows.Forms.Button();
+            this.saveConsoleDialog = new System.Windows.Forms.SaveFileDialog();
             this.gbxControls.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -68,51 +69,62 @@
             this.btnSaveLog.TabIndex = 6;
             this.btnSaveLog.Text = "Save log";
             this.btnSaveLog.UseVisualStyleBackColor = true;
+            this.btnSaveLog.Click += new System.EventHandler(this.btnSaveLog_Click);
             // 
             // btnClearAll
             // 
+            this.btnClearAll.Enabled = false;
             this.btnClearAll.Location = new System.Drawing.Point(7, 136);
             this.btnClearAll.Name = "btnClearAll";
             this.btnClearAll.Size = new System.Drawing.Size(107, 23);
             this.btnClearAll.TabIndex = 5;
             this.btnClearAll.Text = "Clear All";
             this.btnClearAll.UseVisualStyleBackColor = true;
+            this.btnClearAll.Click += new System.EventHandler(this.btnClearAll_Click);
             // 
             // btnClearConsole
             // 
+            this.btnClearConsole.Enabled = false;
             this.btnClearConsole.Location = new System.Drawing.Point(7, 107);
             this.btnClearConsole.Name = "btnClearConsole";
             this.btnClearConsole.Size = new System.Drawing.Size(107, 23);
             this.btnClearConsole.TabIndex = 4;
             this.btnClearConsole.Text = "Clear Console";
             this.btnClearConsole.UseVisualStyleBackColor = true;
+            this.btnClearConsole.Click += new System.EventHandler(this.btnClearConsole_Click);
             // 
             // btnStopServer
             // 
+            this.btnStopServer.Enabled = false;
             this.btnStopServer.Location = new System.Drawing.Point(6, 77);
             this.btnStopServer.Name = "btnStopServer";
             this.btnStopServer.Size = new System.Drawing.Size(108, 23);
             this.btnStopServer.TabIndex = 3;
             this.btnStopServer.Text = "Stop Server";
             this.btnStopServer.UseVisualStyleBackColor = true;
+            this.btnStopServer.Click += new System.EventHandler(this.btnStopServer_Click);
             // 
             // btnKick
             // 
+            this.btnKick.Enabled = false;
             this.btnKick.Location = new System.Drawing.Point(6, 48);
             this.btnKick.Name = "btnKick";
             this.btnKick.Size = new System.Drawing.Size(108, 23);
             this.btnKick.TabIndex = 2;
             this.btnKick.Text = "Kick";
             this.btnKick.UseVisualStyleBackColor = true;
+            this.btnKick.Click += new System.EventHandler(this.btnKick_Click);
             // 
             // btnStop
             // 
+            this.btnStop.Enabled = false;
             this.btnStop.Location = new System.Drawing.Point(64, 19);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(50, 23);
             this.btnStop.TabIndex = 1;
             this.btnStop.Text = "Stop";
             this.btnStop.UseVisualStyleBackColor = true;
+            this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
             // 
             // btnStart
             // 
@@ -122,6 +134,7 @@
             this.btnStart.TabIndex = 0;
             this.btnStart.Text = "Start All";
             this.btnStart.UseVisualStyleBackColor = true;
+            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
             // lbxUsers
             // 
@@ -168,6 +181,11 @@
             this.btnSendMessage.TabIndex = 5;
             this.btnSendMessage.Text = "Send";
             this.btnSendMessage.UseVisualStyleBackColor = true;
+            this.btnSendMessage.Click += new System.EventHandler(this.btnSendMessage_Click);
+            // 
+            // saveConsoleDialog
+            // 
+            this.saveConsoleDialog.DefaultExt = "txt";
             // 
             // CB_Simulator_Reborn_Server
             // 
@@ -182,6 +200,7 @@
             this.Controls.Add(this.gbxControls);
             this.Name = "CB_Simulator_Reborn_Server";
             this.Text = "CB Simulator Reborn - Server Console";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.formClosing);
             this.gbxControls.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -203,6 +222,7 @@
         private System.Windows.Forms.ListBox lbxConsole;
         private System.Windows.Forms.TextBox tbxMessage;
         private System.Windows.Forms.Button btnSendMessage;
+        private System.Windows.Forms.SaveFileDialog saveConsoleDialog;
     }
 }
 

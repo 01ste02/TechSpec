@@ -39,8 +39,6 @@ namespace CB_Simulator_Reborn_Server
         public CB_Simulator_Reborn_Server()
         {
             InitializeComponent();
-            InitBroadcastTimer();
-            StartListening();
         }
 
         public void InitBroadcastTimer()
@@ -58,9 +56,19 @@ namespace CB_Simulator_Reborn_Server
 
         public async void Broadcaster()
         {
-            broadcaster.EnableBroadcast = true;
-            byte[] broadcastBytes = Encoding.UTF8.GetBytes(broadcastMessage);
-            await broadcaster.SendAsync(broadcastBytes, broadcastBytes.Length, broadcastEndpoint);
+            try
+            {
+                broadcaster.EnableBroadcast = true;
+                byte[] broadcastBytes = Encoding.UTF8.GetBytes(broadcastMessage);
+                await broadcaster.SendAsync(broadcastBytes, broadcastBytes.Length, broadcastEndpoint);
+            }
+            catch (Exception e)
+            {
+                if (broadcaster.EnableBroadcast == true)
+                {
+                    errorHandle(e);
+                }
+            }
         }
 
         public void StartListening()
@@ -88,7 +96,10 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e)
             {
-                errorHandle(e);
+                if (broadcaster.EnableBroadcast == true) //If this is false, the server shouldn't be accepting clients. Error generated in fault.
+                {
+                    errorHandle(e);
+                }
             }
         }
 
@@ -132,7 +143,6 @@ namespace CB_Simulator_Reborn_Server
                 {
                     SendUserList(clientList[m].Client);
                 }
-                //SendUserList(client);
             }
             catch (Exception e)
             {
@@ -255,6 +265,8 @@ namespace CB_Simulator_Reborn_Server
                             ForwardMessageToClients(clientList[i].Client, chatMessage);
                         }
                     }
+
+                    lbxConsole.Items.Add(DateTime.Now + " " + chatMessage.FromUser + ": " + chatMessage.Message);
                 }
 
                 if (client.Connected)
@@ -273,7 +285,6 @@ namespace CB_Simulator_Reborn_Server
             try
             {
                 byte[] messageHeader = Encoding.UTF8.GetBytes("C-M");
-
                 await client.GetStream().WriteAsync(messageHeader, 0, messageHeader.Length);
 
                 Timer forwardMessageTimer = new Timer();
@@ -308,6 +319,165 @@ namespace CB_Simulator_Reborn_Server
         public void errorHandle(Exception e)
         {
             MessageBox.Show(this, e.Message, "An error has occured in the server", MessageBoxButtons.OK);
+        }
+
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            InitBroadcastTimer();
+            StartListening();
+
+            btnStopServer.Enabled = true;
+            btnStart.Enabled = false;
+            btnStop.Enabled = true;
+            btnClearAll.Enabled = true;
+            btnClearConsole.Enabled = true;
+            btnKick.Enabled = true;
+        }
+
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+            broadcastTimer.Stop();
+            serverListener.Stop();
+            broadcaster.EnableBroadcast = false;
+
+            btnStop.Enabled = false;
+            btnStart.Enabled = true;
+        }
+
+        private async void btnKick_Click(object sender, EventArgs e)
+        {
+            if (lbxUsers.SelectedIndex >= 0)
+            {
+                for (int i = 0; i < clientList.Count; i++)
+                {
+                    if (clientList[i].ClientNickname.Equals(lbxUsers.Items[lbxUsers.SelectedIndex]))
+                    {
+                        TcpClient client = clientList[i].Client;
+
+                        byte[] message = Encoding.UTF8.GetBytes("K-D");
+                        await client.GetStream().WriteAsync(message, 0, message.Length);
+
+                        client.Close();
+
+                        MessageBox.Show(this, clientList[i].ClientNickname + " has been kicked from the server.", "User Kicked", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        lbxConsole.Items.Add(DateTime.Now + ": Client with ip " + clientList[i].ClientIP + " and username " + clientList[i].ClientNickname + " disconnected");
+                        clientList.RemoveAt(i);
+                        clientListLight.RemoveAt(i);
+                        updateUserList();
+
+                        for (int m = 0; m < clientList.Count; m++)
+                        {
+                            SendUserList(clientList[m].Client);
+                        }
+
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show(this, "Please select a user to kick!", "Select User", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private async void btnStopServer_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < clientList.Count; i++)
+            {
+                TcpClient client = clientList[i].Client;
+
+                byte[] message = Encoding.UTF8.GetBytes("S-C");
+                await client.GetStream().WriteAsync(message, 0, message.Length);
+
+                client.Close();
+
+                lbxConsole.Items.Add(DateTime.Now + ": Client with ip " + clientList[i].ClientIP + " and username " + clientList[i].ClientNickname + " disconnected");
+                clientList.RemoveAt(i);
+                clientListLight.RemoveAt(i);
+                updateUserList();
+
+                for (int m = 0; m < clientList.Count; m++)
+                {
+                    SendUserList(clientList[m].Client);
+                }
+            }
+
+            btnStopServer.Enabled = false;
+            btnStart.Enabled = true;
+            btnStop.Enabled = false;
+            btnClearAll.Enabled = false;
+            btnClearConsole.Enabled = true;
+            btnKick.Enabled = false;
+
+            MessageBox.Show(this, "The server-close signal has been sent", "Server Close", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void btnClearConsole_Click(object sender, EventArgs e)
+        {
+            lbxConsole.Items.Clear();
+            lbxConsole.Items.Add("Observe that the console has only been cleared for the server, and not the clients. Use the \"Clear All\" button to clear the chat for all clients.");
+        }
+
+        private async void btnClearAll_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < clientList.Count; i++)
+            {
+                TcpClient client = clientList[i].Client;
+
+                byte[] message = Encoding.UTF8.GetBytes("C-C");
+                await client.GetStream().WriteAsync(message, 0, message.Length);
+            }
+
+            lbxConsole.Items.Add(DateTime.Now + ": All client chats have been cleared");
+            MessageBox.Show(this, "All chats have been force-cleared.", "Chat Cleared", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private async void btnSaveLog_Click(object sender, EventArgs e)
+        {
+            DialogResult result = saveConsoleDialog.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                FileStream outStream = new FileStream(saveConsoleDialog.FileName, FileMode.OpenOrCreate, FileAccess.Write);
+                StreamWriter writer = new StreamWriter(outStream, Encoding.UTF8);
+
+                for (int i = 0; i < lbxConsole.Items.Count; i++)
+                {
+                    await writer.WriteLineAsync(lbxConsole.Items[i].ToString());
+                }
+
+                writer.Dispose();
+                MessageBox.Show(this, "File saved", "Console Saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show(this, "Please select a save location and file name to save the console to.", "Saving Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void btnSendMessage_Click(object sender, EventArgs e)
+        {
+            if (!String.IsNullOrEmpty(tbxMessage.Text) && !String.IsNullOrWhiteSpace(tbxMessage.Text))
+            {
+                if (tbxMessage.Text.Length < 1024)
+                {
+                    ChatMessage messageToClients = new ChatMessage("Server", tbxMessage.Text);
+                    lbxConsole.Items.Add(DateTime.Now + " Server:" + tbxMessage.Text);
+
+                    tbxMessage.Text = "";
+
+                    for (int i = 0; i < clientList.Count; i++)
+                    {
+                        ForwardMessageToClients(clientList[i].Client, messageToClients);
+                    }
+                }
+            }
+        }
+
+        private void formClosing(object sender, FormClosedEventArgs e)
+        {
+            btnStopServer_Click(this, e);
         }
     }
 }

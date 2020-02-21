@@ -166,6 +166,14 @@ namespace CB_Simulator_Reborn_Client
                     else if (message.Equals("K-D")) //Server has sent a kick request to the client. Connection will be terminated.
                     {
                         Client.Close();
+
+                        lbxChat.Items.Add(DateTime.Now + ": Kicked from server");
+                        lbxUsers.Items.Clear();
+                        btnJoin.Enabled = true;
+                        btnLeave.Enabled = false;
+                        tbxUsername.Enabled = true;
+                        alreadyConnected = false;
+
                         MessageBox.Show(this, "You have been kicked from this chat-server by an administrator. Please adhere to the rules of the server and contact an administrator if you believe this action to have been wrongly performed.", "You have been Kicked", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                     else if (message.Equals("C-C")) //Server is force-clearing all messages from the chat.
@@ -251,11 +259,6 @@ namespace CB_Simulator_Reborn_Client
                     int userId = BitConverter.ToInt32(userList, 4 + (4 + 512) * index);
                     string username = Encoding.UTF8.GetString(userList, 8 + (4 + 512) * index, 512);
 
-                    //int usernameStopIndex = username.IndexOf("\\");
-                    //if (usernameStopIndex > 0)
-                    //{
-                    //    username = username.Substring(0, usernameStopIndex + 1);
-                    //}
                     username = username.Substring(0, Math.Max(0, username.IndexOf('\0')));
 
                     CB_Simulator_clientInfoLight tmpClient = new CB_Simulator_clientInfoLight(userId, username);
@@ -331,9 +334,16 @@ namespace CB_Simulator_Reborn_Client
         {
             if (!String.IsNullOrEmpty(tbxMessage.Text) && !String.IsNullOrWhiteSpace(tbxMessage.Text))
             {
-                lbxChat.Items.Add(DateTime.Now + " " + tbxUsername.Text + ": " + tbxMessage.Text);
-                SendMessage(tbxMessage.Text);
-                tbxMessage.Text = "";
+                if (tbxMessage.Text.Length < 1024)
+                {
+                    lbxChat.Items.Add(DateTime.Now + " " + tbxUsername.Text + ": " + tbxMessage.Text);
+                    SendMessage(tbxMessage.Text);
+                    tbxMessage.Text = "";
+                }
+                else
+                {
+                    MessageBox.Show(this, "Your entered message is too long", "Message too long", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
         }
     }
