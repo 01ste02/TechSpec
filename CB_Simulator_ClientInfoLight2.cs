@@ -1,21 +1,17 @@
-﻿/* Copyright (C) StenIT - All Rights Reserved
- * Unauthorized copying of this file, via any medium is strictly prohibited
- * Proprietary and confidential
- * Written by Oskar Stenberg <oskar@stenit.eu>, January-February 2020
- */
+﻿using System;
 
-
-
-namespace CB_Simulator_Reborn_Client
-{
+[System.Serializable]
     public class CB_Simulator_clientInfoLight
     {
+        public Int32 x;
         private int id;
+        private DateTime connectTime;
         private string nickname;
 
-        public CB_Simulator_clientInfoLight(int id, string nickname)
+        public CB_Simulator_clientInfoLight(int id = 99999, DateTime connectTime = default(DateTime), string nickname = "NoNickname")
         {
             ClientId = id;
+            ClientConnectTime = connectTime;
             ClientNickname = nickname;
         }
 
@@ -30,6 +26,25 @@ namespace CB_Simulator_Reborn_Client
                 try
                 {
                     id = value;
+                }
+                catch
+                {
+
+                }
+            }
+        }
+
+        public DateTime ClientConnectTime
+        {
+            get
+            {
+                return connectTime;
+            }
+            set
+            {
+                try
+                {
+                    connectTime = value;
                 }
                 catch
                 {
@@ -57,4 +72,5 @@ namespace CB_Simulator_Reborn_Client
             }
         }
     }
-}
+
+
