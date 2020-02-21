@@ -191,8 +191,11 @@ namespace CB_Simulator_Reborn_Server
                 
 
                 byte[] message = SerializeUserList(clientListLight); //Serialize the user list to a byte array and send it.
-                await client.GetStream().WriteAsync(message, 0, message.Length);
-                ReceiveFromClient(client); //Start accepting data from the client again
+                if (client.Connected)
+                {
+                    await client.GetStream().WriteAsync(message, 0, message.Length);
+                    ReceiveFromClient(client); //Start accepting data from the client again
+                }
             }
             catch (Exception e2)
             {
@@ -255,28 +258,31 @@ namespace CB_Simulator_Reborn_Server
                     client.Close();
 
                 }
-                else if (message.Substring(0, 3).Equals("C-M"))  //This header indicates that this is a new chat-message from a client
+                else if (message.Length > 3)  //This header indicates that this is a new chat-message from a client. Check that the header could possiby be in the message first
                 {
-                    ChatMessage chatMessage = new ChatMessage("None", "None");
-
-                    for (int i = 0; i < clientList.Count; i++)
+                    if (message.Substring(0, 3).Equals("C-M"))
                     {
-                        if (clientList[i].Client == client)
-                        {
-                            chatMessage = new ChatMessage(clientList[i].ClientNickname, message.Substring(3)); //Find the username of the client who sent the message, and update the chatMessage object
-                            break;
-                        }
-                    }
+                        ChatMessage chatMessage = new ChatMessage("None", "None");
 
-                    for (int i = 0; i < clientList.Count; i++)
-                    {
-                        if (clientList[i].Client != client) //Forward the chat message to all clients except for the one who sent it at first
+                        for (int i = 0; i < clientList.Count; i++)
                         {
-                            ForwardMessageToClients(clientList[i].Client, chatMessage); 
+                            if (clientList[i].Client == client)
+                            {
+                                chatMessage = new ChatMessage(clientList[i].ClientNickname, message.Substring(3)); //Find the username of the client who sent the message, and update the chatMessage object
+                                break;
+                            }
                         }
-                    }
 
-                    lbxConsole.Items.Add(DateTime.Now + " " + chatMessage.FromUser + ": " + chatMessage.Message);
+                        for (int i = 0; i < clientList.Count; i++)
+                        {
+                            if (clientList[i].Client != client) //Forward the chat message to all clients except for the one who sent it at first
+                            {
+                                ForwardMessageToClients(clientList[i].Client, chatMessage);
+                            }
+                        }
+
+                        lbxConsole.Items.Add(DateTime.Now + " " + chatMessage.FromUser + ": " + chatMessage.Message);
+                    }
                 }
 
                 if (client.Connected) //If this is true, it means that the client wasn't disconnecting, so we should expect more data from it
@@ -286,7 +292,10 @@ namespace CB_Simulator_Reborn_Server
             }
             catch (Exception e)
             {
-                ErrorHandle(e);
+                if (client.Connected) //If the client is not connected, the error was generated due to the server trying to listen to a client that it has kicked/disconnected/when the server is closing. Error generated due to a bug that is out of developer control, therefore it is suppressed
+                {
+                    ErrorHandle(e);
+                }
             }
         }
 
@@ -402,25 +411,24 @@ namespace CB_Simulator_Reborn_Server
         {
             try
             {
-                for (int i = 0; i < clientList.Count; i++) //Tell all clients that the server is closing, so they should disconnect
+                while (clientList.Count > 0) //Tell all clients that the server is closing, so they should disconnect
                 {
-                    TcpClient client = clientList[i].Client;
+                    TcpClient client = clientList[0].Client;
 
                     byte[] message = Encoding.UTF8.GetBytes("S-C");
                     await client.GetStream().WriteAsync(message, 0, message.Length);
 
                     client.Close();
 
-                    lbxConsole.Items.Add(DateTime.Now + ": Client with ip " + clientList[i].ClientIP + " and username " + clientList[i].ClientNickname + " disconnected");
-                    clientList.RemoveAt(i);
-                    clientListLight.RemoveAt(i);
-                    UpdateUserList();
-
-                    for (int m = 0; m < clientList.Count; m++)
-                    {
-                        SendUserList(clientList[m].Client);
-                    }
+                    lbxConsole.Items.Add(DateTime.Now + ": Client with ip " + clientList[0].ClientIP + " and username " + clientList[0].ClientNickname + " disconnected");
+                    clientList.RemoveAt(0);
+                    clientListLight.RemoveAt(0);
                 }
+                UpdateUserList();
+
+                broadcastTimer.Stop(); //Stop accepting new clients
+                serverListener.Stop();
+                broadcaster.EnableBroadcast = false;
 
                 btnStopServer.Enabled = false; //Disable the server entirely
                 btnStart.Enabled = true;
@@ -538,7 +546,7 @@ namespace CB_Simulator_Reborn_Server
         public void ErrorHandle(Exception e)
         {
             //MessageBox.Show(this, e.Message, "An error has occured in the server", MessageBoxButtons.OK, MessageBoxIcon.Warning); 
-            asyncPopUp.Set(e.Message, "An error has occured in the server", 10000); //Tell the user that an error has occured, with a brief error description for the support team
+            asyncPopUp.Set(e.Message + " " + e.TargetSite + " " + e.StackTrace, "An error has occured in the server", 10000); //Tell the user that an error has occured, with a brief error description for the support team
             asyncPopUp.Show();
         }
     }

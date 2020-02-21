@@ -41,7 +41,7 @@ namespace PopUp
             this.tb.Multiline = true;
             this.tb.Name = "tb";
             this.tb.ReadOnly = true;
-            this.tb.Size = new System.Drawing.Size(566, 43);
+            this.tb.Size = new System.Drawing.Size(566, 126);
             this.tb.TabIndex = 24;
             this.tb.TabStop = false;
             // 
@@ -49,7 +49,7 @@ namespace PopUp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(584, 61);
+            this.ClientSize = new System.Drawing.Size(584, 144);
             this.ControlBox = false;
             this.Controls.Add(this.tb);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;

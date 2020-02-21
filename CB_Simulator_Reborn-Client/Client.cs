@@ -108,10 +108,14 @@ namespace CB_Simulator_Reborn_Client
                 Client = new TcpClient(); //Start the tcp client, connect, and wait for the server to request authentication from the client
                 await Client.ConnectAsync(serverIP, serverPort);
                 StartReceiving();
+                btnSendMessage.Enabled = true;
             }
             catch (Exception e)
             {
-                ErrorHandle(e);
+                if (Client.Connected) //If the client is not connected, the error was generated due to trying to listen when kicked/disconnected/when the server is closing. Error generated due to a bug that is out of developer control, therefore it is suppressed
+                {
+                    ErrorHandle(e);
+                }
             }
         }
 
@@ -207,6 +211,7 @@ namespace CB_Simulator_Reborn_Client
                         btnLeave.Enabled = false;
                         tbxUsername.Enabled = true;
                         alreadyConnected = false;
+                        btnSendMessage.Enabled = false;
 
                         //MessageBox.Show(this, "You have been kicked from this chat-server by an administrator. Please adhere to the rules of the server and contact an administrator if you believe this action to have been wrongly performed.", "You have been Kicked", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         asyncPopUp.Set("You have been kicked from this chat-server by an administrator. Please adhere to the rules of the server and contact an administrator if you believe this action to have been wrongly performed.", "You have been Kicked", 5000);
@@ -215,6 +220,7 @@ namespace CB_Simulator_Reborn_Client
                     else if (message.Equals("C-C")) //Server is force-clearing all messages from the chat.
                     {
                         lbxChat.Items.Clear();
+                        lbxChat.Items.Add(DateTime.Now + ": Chat cleared by the server");
                         //MessageBox.Show(this, "The chat has been force-cleared by the server.", "Chat Force-Cleared by Server", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         asyncPopUp.Set("The chat has been force-cleared by the server.", "Chat Force-Cleared by Server", 5000);
                         asyncPopUp.Show();
@@ -222,6 +228,15 @@ namespace CB_Simulator_Reborn_Client
                     else if (message.Equals("S-C")) //Server is closing. Prepare for session close.
                     {
                         Client.Close(); //Closing our connection so it isn't forcefully terminated
+
+                        lbxChat.Items.Add(DateTime.Now + ": Server closed");
+                        lbxUsers.Items.Clear();
+                        btnJoin.Enabled = true;
+                        btnLeave.Enabled = false;
+                        tbxUsername.Enabled = true;
+                        alreadyConnected = false;
+                        btnSendMessage.Enabled = false;
+
                         //MessageBox.Show(this, "This server has been closed. Please try to log in later if this is an unexpected event.", "Server Closed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         asyncPopUp.Set("This server has been closed. Please try to log in later if this is an unexpected event.", "Server Closed", 5000);
                         asyncPopUp.Show();
@@ -262,6 +277,7 @@ namespace CB_Simulator_Reborn_Client
                 byte[] messageBytes = Encoding.UTF8.GetBytes(message);
                 await Client.GetStream().WriteAsync(messageBytes, 0, messageBytes.Length); //Tell the server that the client is disconnecting.
 
+                broadcastReceiver.EnableBroadcast = false;
                 if (Client.Connected) //If the client is connected, disconnect. Server could have disconnected the client before this runs
                 {
                     Client.Close();
@@ -306,7 +322,7 @@ namespace CB_Simulator_Reborn_Client
             {
                 int index = 0;
 
-                int userCount = BitConverter.ToInt32(userList, 0); //Find the amount of elements based on the first int in the byte array (server is currently limited to 9 users to replicate the original CB-Simulator)
+                int userCount = BitConverter.ToInt32(userList, 0); //Find the amount of elements based on the first int in the byte array
                 while (index < userCount)
                 {
                     int userId = BitConverter.ToInt32(userList, 4 + (4 + 512) * index);
@@ -431,7 +447,7 @@ namespace CB_Simulator_Reborn_Client
         private void ErrorHandle(Exception e)
         {
             //MessageBox.Show(this, e.Message, "An error has occured in the client", MessageBoxButtons.OK);
-            asyncPopUp.Set(e.Message, "An error has occured in the client", 10000);
+            asyncPopUp.Set(e.Message + " " + e.TargetSite + " " + e.StackTrace, "An error has occured in the client", 10000);
             asyncPopUp.Show();
         }
     }

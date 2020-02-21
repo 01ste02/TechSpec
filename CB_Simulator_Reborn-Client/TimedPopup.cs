@@ -49,7 +49,7 @@ namespace PopUp
         /// <param name="style">Optional: The sytyle of the font, viz., Regular, Bold, Italic, Underline, or Strikeout. 
         /// Default = FontStyle.Bold.</param>
         /// <remarks>Note that the Show method is used to actually display the message box.</remarks>
-        public void Set(string msg, string caption = "", int waitTime = 1000, int width = 600, int height = 100,
+        public void Set(string msg, string caption = "", int waitTime = 1000, int width = 600, int height = 150,
                         string familyName = "Sans Serif", float emSize = 12, FontStyle style = FontStyle.Regular)
         {
             tb.Text = msg;
