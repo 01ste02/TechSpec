@@ -241,6 +241,18 @@ namespace CB_Simulator_Reborn_Client
                         asyncPopUp.Set("This server has been closed. Please try to log in later if this is an unexpected event.", "Server Closed", 5000);
                         asyncPopUp.Show();
                     }
+                    else if (message.Equals("B-A")) //Authertication was bad, username might be taken, or the password was wrong (password to be implemented later)
+                    {
+                        Client.Close();
+
+                        lbxChat.Items.Add(DateTime.Now + ": Disconnected due to bad authentication. Your username might already be taken, try again with another username!");
+                        lbxUsers.Items.Clear();
+                        btnJoin.Enabled = true;
+                        btnLeave.Enabled = false;
+                        tbxUsername.Enabled = true;
+                        alreadyConnected = false;
+                        btnSendMessage.Enabled = false;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -298,6 +310,7 @@ namespace CB_Simulator_Reborn_Client
             btnLeave.Enabled = false;
             tbxUsername.Enabled = true;
             alreadyConnected = false;
+            btnSendMessage.Enabled = false;
         }
 
         private async void SendMessage(string message)

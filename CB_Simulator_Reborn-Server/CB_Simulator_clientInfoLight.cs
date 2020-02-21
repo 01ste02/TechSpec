@@ -63,13 +63,13 @@ namespace CB_Simulator_Reborn_Server
 
         public byte[] ToByteArray ()
         {
-            byte[] tmp = new byte[4 + 512];
+            byte[] tmp = new byte[4 + 512]; //Make a byte-array with 4 bytes (an int) for the user-id, and 512 bytes for the username
             byte[] nicknameBytes = new byte[512];
 
-            Encoding.UTF8.GetBytes(nickname).CopyTo(nicknameBytes, 0);
+            Encoding.UTF8.GetBytes(nickname).CopyTo(nicknameBytes, 0); //Convert the username to a byte-array
 
-            BitConverter.GetBytes(id).CopyTo(tmp, 0);
-            nicknameBytes.CopyTo(tmp, 4);
+            BitConverter.GetBytes(id).CopyTo(tmp, 0); //Convert the user-id to a byte array and copy it to the byte-array to be returned
+            nicknameBytes.CopyTo(tmp, 4); //Add the username to the byte-array to be returned after the user-id
 
             return tmp;
         }

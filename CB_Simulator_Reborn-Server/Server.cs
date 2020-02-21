@@ -133,6 +133,7 @@ namespace CB_Simulator_Reborn_Server
             byte[] buffer = new byte[1024];
             int n = 0;
             string message = "";
+            bool badAuth = false; //Gets set to true if the username already exists, or if the password is incorrect (password to be added)
 
             try
             {
@@ -140,18 +141,39 @@ namespace CB_Simulator_Reborn_Server
                 message = Encoding.UTF8.GetString(buffer, 0, n);
                 string nickname = message.Substring(15); //Cut out the auth header
 
-                IPEndPoint tmpEndpoint = client.Client.LocalEndPoint as IPEndPoint;
-                CB_Simulator_clientInfo tmpClient = new CB_Simulator_clientInfo(client, tmpEndpoint.Address, clientList.Count + 1, DateTime.Now, nickname); //Create all the nessecary records from the client
-                CB_Simulator_clientInfoLight tmpClientLight = new CB_Simulator_clientInfoLight(clientList.Count + 1, nickname); //Create a light record, to transmit in a user list in the future (unsafe to broadcast all info)
-                clientList.Add(tmpClient);
-                clientListLight.Add(tmpClientLight); //Add the client to the record tables
-                Console.WriteLine("Added new client");
-
-                lbxConsole.Items.Add(DateTime.Now + ": New client connected from " + tmpClient.ClientIP + " with the username " + tmpClient.ClientNickname);
-
-                for (int m = 0; m < clientList.Count; m++)
+                for (int i = 0; i < clientList.Count; i++) //Go through the list of clients and check if the connecting username already exists with another user
                 {
-                    SendUserList(clientList[m].Client); //Tell all currently connected clients which users are online and connected
+                    if (clientList[i].ClientNickname.Equals(nickname))
+                    {
+                        badAuth = true; //If the username already exists, reject the auth. Add another one of these for the password when that gets implemented
+                        break;
+                    }
+                }
+
+                IPEndPoint tmpEndpoint = client.Client.LocalEndPoint as IPEndPoint;
+                if (!badAuth)
+                {
+                    CB_Simulator_clientInfo tmpClient = new CB_Simulator_clientInfo(client, tmpEndpoint.Address, clientList.Count + 1, DateTime.Now, nickname); //Create all the nessecary records from the client
+                    CB_Simulator_clientInfoLight tmpClientLight = new CB_Simulator_clientInfoLight(clientList.Count + 1, nickname); //Create a light record, to transmit in a user list in the future (unsafe to broadcast all info)
+                    clientList.Add(tmpClient);
+                    clientListLight.Add(tmpClientLight); //Add the client to the record tables
+                    Console.WriteLine("Added new client");
+
+                    lbxConsole.Items.Add(DateTime.Now + ": New client connected from " + tmpClient.ClientIP + " with the username " + tmpClient.ClientNickname);
+
+                    for (int m = 0; m < clientList.Count; m++)
+                    {
+                        SendUserList(clientList[m].Client); //Tell all currently connected clients which users are online and connected
+                    }
+                }
+                else
+                {
+                    lbxConsole.Items.Add(DateTime.Now + ": New client tried to connect from " + tmpEndpoint.Address + " with the username " + nickname + " but was turned down due to bad auth");
+
+                    byte[] badAuthMessage = Encoding.UTF8.GetBytes("B-A"); //Tell the client that the auth was bad and to try again
+                    await client.GetStream().WriteAsync(badAuthMessage, 0, badAuthMessage.Length);
+
+                    client.Close(); //Close the session because the auth was bad
                 }
             }
             catch (Exception e)

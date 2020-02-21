@@ -87,6 +87,8 @@
             // 
             // tbxUsername
             // 
+            this.tbxUsername.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tbxUsername.Location = new System.Drawing.Point(131, 18);
             this.tbxUsername.MaxLength = 120;
             this.tbxUsername.Name = "tbxUsername";
@@ -116,6 +118,8 @@
             // 
             // tbxMessage
             // 
+            this.tbxMessage.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tbxMessage.Location = new System.Drawing.Point(12, 444);
             this.tbxMessage.MaxLength = 2048;
             this.tbxMessage.Multiline = true;
@@ -125,6 +129,7 @@
             // 
             // btnSendMessage
             // 
+            this.btnSendMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSendMessage.Enabled = false;
             this.btnSendMessage.Location = new System.Drawing.Point(500, 444);
             this.btnSendMessage.Name = "btnSendMessage";
@@ -145,7 +150,10 @@
             // 
             // lbxUsers
             // 
+            this.lbxUsers.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.lbxUsers.FormattingEnabled = true;
+            this.lbxUsers.HorizontalScrollbar = true;
             this.lbxUsers.Location = new System.Drawing.Point(12, 158);
             this.lbxUsers.Name = "lbxUsers";
             this.lbxUsers.Size = new System.Drawing.Size(113, 277);

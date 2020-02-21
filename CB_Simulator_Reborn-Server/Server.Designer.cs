@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.gbxControls = new System.Windows.Forms.GroupBox();
             this.btnSaveLog = new System.Windows.Forms.Button();
             this.btnClearAll = new System.Windows.Forms.Button();
@@ -42,6 +43,7 @@
             this.tbxMessage = new System.Windows.Forms.TextBox();
             this.btnSendMessage = new System.Windows.Forms.Button();
             this.saveConsoleDialog = new System.Windows.Forms.SaveFileDialog();
+            this.stopBroadcastToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.gbxControls.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -96,18 +98,18 @@
             // btnStopServer
             // 
             this.btnStopServer.Enabled = false;
-            this.btnStopServer.Location = new System.Drawing.Point(7, 106);
+            this.btnStopServer.Location = new System.Drawing.Point(7, 77);
             this.btnStopServer.Name = "btnStopServer";
             this.btnStopServer.Size = new System.Drawing.Size(108, 23);
             this.btnStopServer.TabIndex = 3;
-            this.btnStopServer.Text = "Stop Server";
+            this.btnStopServer.Text = "Stop All";
             this.btnStopServer.UseVisualStyleBackColor = true;
             this.btnStopServer.Click += new System.EventHandler(this.BtnStopServer_Click);
             // 
             // btnKick
             // 
             this.btnKick.Enabled = false;
-            this.btnKick.Location = new System.Drawing.Point(7, 77);
+            this.btnKick.Location = new System.Drawing.Point(8, 106);
             this.btnKick.Name = "btnKick";
             this.btnKick.Size = new System.Drawing.Size(108, 23);
             this.btnKick.TabIndex = 2;
@@ -123,6 +125,8 @@
             this.btnStop.Size = new System.Drawing.Size(107, 23);
             this.btnStop.TabIndex = 1;
             this.btnStop.Text = "Stop Broadcast";
+            this.stopBroadcastToolTip.SetToolTip(this.btnStop, "Stops broadcasting the server port over the network - No new clients can join. Re" +
+        "verse with \"Start All\".");
             this.btnStop.UseVisualStyleBackColor = true;
             this.btnStop.Click += new System.EventHandler(this.BtnStop_Click);
             // 
@@ -141,6 +145,7 @@
             this.lbxUsers.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.lbxUsers.FormattingEnabled = true;
+            this.lbxUsers.HorizontalScrollbar = true;
             this.lbxUsers.Location = new System.Drawing.Point(12, 263);
             this.lbxUsers.Name = "lbxUsers";
             this.lbxUsers.Size = new System.Drawing.Size(121, 303);
@@ -192,6 +197,14 @@
             // saveConsoleDialog
             // 
             this.saveConsoleDialog.DefaultExt = "txt";
+            this.saveConsoleDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+            // 
+            // stopBroadcastToolTip
+            // 
+            this.stopBroadcastToolTip.IsBalloon = true;
+            this.stopBroadcastToolTip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            this.stopBroadcastToolTip.ToolTipTitle = "Stops broadcasting the server port over the network - No new clients can join. Re" +
+    "verse with \"Start All\".";
             // 
             // CB_Simulator_Reborn_Server
             // 
@@ -229,6 +242,7 @@
         private System.Windows.Forms.TextBox tbxMessage;
         private System.Windows.Forms.Button btnSendMessage;
         private System.Windows.Forms.SaveFileDialog saveConsoleDialog;
+        private System.Windows.Forms.ToolTip stopBroadcastToolTip;
     }
 }
 

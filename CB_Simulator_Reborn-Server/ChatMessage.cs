@@ -46,13 +46,13 @@ namespace CB_Simulator_Reborn_Server
 
         public byte[] ToByteArray()
         {
-            byte[] tmp = new byte[512 + 2048];
+            byte[] tmp = new byte[512 + 2048]; //Make an array with 512 bytes reserved for username, and 2048 for the message
             byte[] messageBytes = new byte[2048];
 
-            Encoding.UTF8.GetBytes(message).CopyTo(messageBytes, 0);
+            Encoding.UTF8.GetBytes(message).CopyTo(messageBytes, 0); //Convert the message to a byte array
 
-            Encoding.UTF8.GetBytes(fromUser).CopyTo(tmp, 0);
-            messageBytes.CopyTo(tmp, 512);
+            Encoding.UTF8.GetBytes(fromUser).CopyTo(tmp, 0); //Copy the username to the byte array to be returned
+            messageBytes.CopyTo(tmp, 512); //Add the message byte array after the username
 
             return tmp;
         }
