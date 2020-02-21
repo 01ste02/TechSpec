@@ -84,6 +84,7 @@ namespace CB_Simulator_Reborn_Client
                 ConnectToServer();
                 isBroadcastReceivedTimer.Stop();
                 secondsSinceConnectAttempt = 0;
+                broadcastReceived = false;
             }
             else
             {
@@ -289,7 +290,7 @@ namespace CB_Simulator_Reborn_Client
                 byte[] messageBytes = Encoding.UTF8.GetBytes(message);
                 await Client.GetStream().WriteAsync(messageBytes, 0, messageBytes.Length); //Tell the server that the client is disconnecting.
 
-                broadcastReceiver.EnableBroadcast = false;
+                //broadcastReceiver.EnableBroadcast = false;
                 if (Client.Connected) //If the client is connected, disconnect. Server could have disconnected the client before this runs
                 {
                     Client.Close();
