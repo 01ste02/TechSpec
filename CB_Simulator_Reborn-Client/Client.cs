@@ -15,6 +15,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows.Forms;
+using PopUp;
 
 namespace CB_Simulator_Reborn_Client
 {
@@ -34,6 +35,8 @@ namespace CB_Simulator_Reborn_Client
         private List<CB_Simulator_clientInfoLight> userList;
 
         private TcpClient Client;
+
+        private static TimedPopUp asyncPopUp = new TimedPopUp(); //Async messageBox
 
         public CB_Simulator_Reborn_Client()
         {
@@ -88,7 +91,11 @@ namespace CB_Simulator_Reborn_Client
 
                 if (secondsSinceConnectAttempt >= 3)
                 {
-                    MessageBox.Show(this, "Connecting to the server is taking longer than expected. Make sure that you are connected to the same network as the server, and that your firewall is not blocking the client or the server. The server might have joining turned off, or be turned off. Try again later, or after checking afforementioned factors.", "Delay in Joining", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    //MessageBox.Show(this, "Connecting to the server is taking longer than expected. Make sure that you are connected to the same network as the server, and that your firewall is not blocking the client or the server. The server might have joining turned off, or be turned off. Try again later, or after checking afforementioned factors.", "Delay in Joining", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    asyncPopUp.Set("Connecting to the server is taking longer than expected. Make sure that you are connected to the same network as the server, and that your firewall is not blocking the client or the server. The server might have joining turned off, or be turned off. Try again later, or after checking afforementioned factors.", "Delay in Joining", 5000);
+                    asyncPopUp.Show();
+
+                    secondsSinceConnectAttempt = -7;
                     btnLeave.Enabled = true;
                 }
             }
@@ -201,17 +208,23 @@ namespace CB_Simulator_Reborn_Client
                         tbxUsername.Enabled = true;
                         alreadyConnected = false;
 
-                        MessageBox.Show(this, "You have been kicked from this chat-server by an administrator. Please adhere to the rules of the server and contact an administrator if you believe this action to have been wrongly performed.", "You have been Kicked", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        //MessageBox.Show(this, "You have been kicked from this chat-server by an administrator. Please adhere to the rules of the server and contact an administrator if you believe this action to have been wrongly performed.", "You have been Kicked", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        asyncPopUp.Set("You have been kicked from this chat-server by an administrator. Please adhere to the rules of the server and contact an administrator if you believe this action to have been wrongly performed.", "You have been Kicked", 5000);
+                        asyncPopUp.Show();
                     }
                     else if (message.Equals("C-C")) //Server is force-clearing all messages from the chat.
                     {
                         lbxChat.Items.Clear();
-                        MessageBox.Show(this, "The chat has been force-cleared by the server.", "Chat Force-Cleared by Server", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        //MessageBox.Show(this, "The chat has been force-cleared by the server.", "Chat Force-Cleared by Server", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        asyncPopUp.Set("The chat has been force-cleared by the server.", "Chat Force-Cleared by Server", 5000);
+                        asyncPopUp.Show();
                     }
                     else if (message.Equals("S-C")) //Server is closing. Prepare for session close.
                     {
                         Client.Close(); //Closing our connection so it isn't forcefully terminated
-                        MessageBox.Show(this, "This server has been closed. Please try to log in later if this is an unexpected event.", "Server Closed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        //MessageBox.Show(this, "This server has been closed. Please try to log in later if this is an unexpected event.", "Server Closed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        asyncPopUp.Set("This server has been closed. Please try to log in later if this is an unexpected event.", "Server Closed", 5000);
+                        asyncPopUp.Show();
                     }
                 }
                 catch (Exception e)
@@ -362,7 +375,9 @@ namespace CB_Simulator_Reborn_Client
                 }
                 else
                 {
-                    MessageBox.Show(this, "Please enter a valid username", "Invalid Username", MessageBoxButtons.OK);
+                    //MessageBox.Show(this, "Please enter a valid username", "Invalid Username", MessageBoxButtons.OK);
+                    asyncPopUp.Set("Please enter a valid username", "Invalid Username", 5000);
+                    asyncPopUp.Show();
                 }
             }
             catch (Exception e2)
@@ -374,6 +389,11 @@ namespace CB_Simulator_Reborn_Client
         private void BtnLeave_Click(object sender, EventArgs e)
         {
             SendDisconnect(); //Leave the server, and tell the server beforehand
+
+            if (isBroadcastReceivedTimer.Enabled) //If the client is trying to connect, and the leave button has been pressed after a timeout event, stop the times as well (stop trying to connect)
+            {
+                isBroadcastReceivedTimer.Stop();
+            }
         }
 
         private void BtnClearChat_Click(object sender, EventArgs e)
@@ -396,7 +416,9 @@ namespace CB_Simulator_Reborn_Client
                     }
                     else
                     {
-                        MessageBox.Show(this, "Your entered message is too long", "Message too long", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        //MessageBox.Show(this, "Your entered message is too long", "Message too long", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        asyncPopUp.Set("The message that you entered is too long", "Message too long", 5000);
+                        asyncPopUp.Show();
                     }
                 }
             }
@@ -408,7 +430,9 @@ namespace CB_Simulator_Reborn_Client
 
         private void ErrorHandle(Exception e)
         {
-            MessageBox.Show(this, e.Message, "An error has occured in the client", MessageBoxButtons.OK);
+            //MessageBox.Show(this, e.Message, "An error has occured in the client", MessageBoxButtons.OK);
+            asyncPopUp.Set(e.Message, "An error has occured in the client", 10000);
+            asyncPopUp.Show();
         }
     }
 }

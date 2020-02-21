@@ -15,6 +15,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows.Forms;
+using PopUp;
 
 namespace CB_Simulator_Reborn_Server
 {
@@ -38,6 +39,8 @@ namespace CB_Simulator_Reborn_Server
         private List<TcpClient> incompleteClients = new List<TcpClient>();
 
         string authRequestMessage = "R-A"; //Message for the server to send the client to let it know to send the username (and maybe password)
+
+        private static TimedPopUp asyncPopUp = new TimedPopUp(); //Async messageBox
 
         public CB_Simulator_Reborn_Server()
         {
@@ -364,7 +367,9 @@ namespace CB_Simulator_Reborn_Server
 
                             client.Close(); //Close the connection, remove the client from the user-lists, and tell the others that the user has disconnected
 
-                            MessageBox.Show(this, clientList[i].ClientNickname + " has been kicked from the server.", "User Kicked", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            //MessageBox.Show(this, clientList[i].ClientNickname + " has been kicked from the server.", "User Kicked", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            asyncPopUp.Set(clientList[i].ClientNickname + " has been kicked from the server.", "User Kicked", 5000);
+                            asyncPopUp.Show();
 
                             lbxConsole.Items.Add(DateTime.Now + ": Client with ip " + clientList[i].ClientIP + " and username " + clientList[i].ClientNickname + " disconnected");
                             clientList.RemoveAt(i);
@@ -382,7 +387,9 @@ namespace CB_Simulator_Reborn_Server
                 }
                 else
                 {
-                    MessageBox.Show(this, "Please select a user to kick!", "Select User", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    //MessageBox.Show(this, "Please select a user to kick!", "Select User", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    asyncPopUp.Set("Please select a user to kick!", "Select User", 5000);
+                    asyncPopUp.Show();
                 }
             }
             catch (Exception e2)
@@ -423,7 +430,9 @@ namespace CB_Simulator_Reborn_Server
                 btnKick.Enabled = false;
                 btnSendMessage.Enabled = false;
 
-                MessageBox.Show(this, "The server-close signal has been sent", "Server Close", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show(this, "The server-close signal has been sent", "Server Closing", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                asyncPopUp.Set("The server-close signal has been sent", "Server Closing", 5000);
+                asyncPopUp.Show();
             }
             catch (Exception e2)
             {
@@ -450,7 +459,9 @@ namespace CB_Simulator_Reborn_Server
                 }
 
                 lbxConsole.Items.Add(DateTime.Now + ": All client chats have been cleared");
-                MessageBox.Show(this, "All chats have been force-cleared.", "Chat Cleared", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show(this, "All chats have been force-cleared.", "Chat Cleared", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                asyncPopUp.Set("All chats have been force-cleared.", "Chat Cleared", 5000);
+                asyncPopUp.Show();
             }
             catch (Exception e2)
             {
@@ -475,11 +486,16 @@ namespace CB_Simulator_Reborn_Server
                     }
 
                     writer.Dispose();
-                    MessageBox.Show(this, "File saved", "Console Saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    
+                    //MessageBox.Show(this, "File saved", "Console Saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    asyncPopUp.Set("File saved", "Console Saved", 5000);
+                    asyncPopUp.Show();
                 }
                 else
                 {
-                    MessageBox.Show(this, "Please select a save location and file name to save the console to.", "Saving Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    //MessageBox.Show(this, "Please select a save location and file name to save the console to.", "Saving Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    asyncPopUp.Set("Please select a save location and file name to save the console to.", "Saving Failed", 5000);
+                    asyncPopUp.Show();
                 }
             }
             catch (Exception e2)
@@ -521,7 +537,9 @@ namespace CB_Simulator_Reborn_Server
 
         public void ErrorHandle(Exception e)
         {
-            MessageBox.Show(this, e.Message, "An error has occured in the server", MessageBoxButtons.OK, MessageBoxIcon.Warning); //Tell the user that an error has occured, with a brief error description for the support team
+            //MessageBox.Show(this, e.Message, "An error has occured in the server", MessageBoxButtons.OK, MessageBoxIcon.Warning); 
+            asyncPopUp.Set(e.Message, "An error has occured in the server", 10000); //Tell the user that an error has occured, with a brief error description for the support team
+            asyncPopUp.Show();
         }
     }
 }
